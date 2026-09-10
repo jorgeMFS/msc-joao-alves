@@ -1,0 +1,29 @@
+# Dados: nada de dados vai para o git. Ver data/README.md.
+data/raw/
+data/processed/
+*.h5
+*.h5ad
+*.rds
+*.csv.gz
+*.xlsx
+
+# Resultados pesados (as tabelas pequenas em results/ PODEM ir)
+results/*.png
+results/*.pdf
+results/*.svg
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# Sistema
+.DS_Store
+Thumbs.db
