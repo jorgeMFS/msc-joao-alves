@@ -40,29 +40,35 @@ Tabelas com fármacos e dados relativos
 
 ### Dados sobre cada intervenção
 
-| Intervention                                       |        Year | No of Males | No of Females |
-| -------------------------------------------------- | ----------: | ----------: | ------------: |
-| Control                                            |             |          26 |            28 |
-| 17-DMAG; 30ppm                                     |        2015 |           2 |             3 |
-| Minocycline; 300ppm                                |        2015 |           2 |             3 |
-| Mito Q; 100ppm                                     |        2015 |           3 |             3 |
-| Late-life Rapamycin; 42ppm                         |        2015 |           3 |             2 |
-| b-GPA; 3300ppm                                     |        2015 |           3 |             1 |
-| Canagliflozin; 180ppm                              | 2016 e 2020 |           6 |             6 |
-| Candesartan cilexetil CC; 30ppm                    |        2016 |           3 |             2 |
-| Geranylgeranylacetone GGA; 600ppm                  |        2016 |           2 |             3 |
-| Nicotinamide riboside NR; 1000ppm                  |        2016 |           2 |             2 |
-| MIF098; 240ppm                                     |        2016 |           3 |             1 |
-| 1,3-butanediol BD; 100000ppm                       |        2017 |           2 |             3 |
-| Captopril; 180ppm                                  |        2017 |           3 |             3 |
-| L-Leucine; 40000ppm                                |        2017 |           3 |             3 |
-| PB125; 100ppm                                      |        2017 |           3 |             3 |
-| Middle-aged Rapamycin; 14.7ppm & Acarbose; 1000ppm |        2017 |           3 |             3 |
-| Rapamycin; 14.7ppm & Acarbose; 1000ppm             |        2017 |           3 |             3 |
-| Sulindac; 5ppm                                     |        2017 |           2 |             3 |
-| Syringaresinol; 300ppm                             |        2017 |           3 |             3 |
-| Middle-aged 17-alpha-estradiol; 14.4ppm            |        2011 |           3 |             0 |
-| Late-life 17-alpha-estradiol                       |        2016 |           2 |             0 |
+| Intervention                                                  | Year | No of Males | No of Females |
+| ------------------------------------------------------------- | ---: | ----------: | ------------: |
+| Control (2011)                                                | 2011 |         306 |           288 |
+| Control (2015)                                                | 2015 |         300 |           280 |
+| Control (2016)                                                | 2016 |         303 |           304 |
+| Control (2017)                                                | 2017 |         300 |           280 |
+| Control (2020)                                                | 2020 |         303 |           272 |
+| 17-DMAG; 30ppm                                                | 2015 |         156 |           136 |
+| Minocycline; 300ppm                                           | 2015 |         156 |           136 |
+| Mito Q; 100ppm                                                | 2015 |         156 |           136 |
+| Late-life Rapamycin; 42ppm                                    | 2015 |         156 |           136 |
+| b-GPA; 3300ppm                                                | 2015 |         156 |           136 |
+| Canagliflozin; 180ppm                                         | 2016 |         156 |           136 |
+| Canagliflozin; 180ppm (6 mo)                                  | 2020 |          60 |            44 |
+| Canagliflozin; 180ppm (16 mo)                                 | 2020 |          92 |           102 |
+| Candesartan cilexetil CC; 30ppm                               | 2016 |         156 |           136 |
+| Geranylgeranylacetone GGA; 600ppm                             | 2016 |         156 |           136 |
+| Nicotinamide riboside NR; 1000ppm                             | 2016 |         156 |           136 |
+| MIF098; 240ppm                                                | 2016 |         156 |           136 |
+| 1,3-butanediol BD; 100000ppm                                  | 2017 |         156 |           136 |
+| Captopril; 180ppm                                             | 2017 |         156 |           136 |
+| L-Leucine; 40000ppm                                           | 2017 |         156 |           136 |
+| PB125; 100ppm                                                 | 2017 |         156 |           136 |
+| Middle-aged Rapamycin; 14.7ppm & Acarbose; 1000ppm (9 mo)     | 2017 |         156 |           136 |
+| Rapamycin; 14.7ppm & Acarbose; 1000ppm                        | 2017 |         156 |           136 |
+| Sulindac; 5ppm                                                | 2017 |         156 |           136 |
+| Syringaresinol; 300ppm                                        | 2017 |         156 |           136 |
+| Middle-aged 17-alpha-estradiol; 14.4ppm                       | 2011 |         156 |           136 |
+| Late-life 17-alpha-estradiol                                  | 2016 |         159 |             0 |
 
 
 ## 5. Bloqueado
