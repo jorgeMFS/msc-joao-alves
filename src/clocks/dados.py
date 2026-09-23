@@ -5,6 +5,8 @@ Toda a junção acontece aqui, para que o resto do código não tenha de saber d
 """
 from pathlib import Path
 
+import pyreadr
+
 import pandas as pd
 
 RAW = Path(__file__).resolve().parents[2] / "data" / "raw"
@@ -12,7 +14,10 @@ RAW = Path(__file__).resolve().parents[2] / "data" / "raw"
 
 def carregar_expressao(path=None):
     """Matriz de expressão do Zenodo. Linhas = amostras, colunas = genes."""
-    raise NotImplementedError("semana 1: confirmar formato do ficheiro do Zenodo")
+    if path is None:
+        path=RAW/"Expression_data_absolute_rodents.rds"
+    df=pyreadr.read_r(path)
+    return df
 
 
 def carregar_metadados_amostras(path=None):
