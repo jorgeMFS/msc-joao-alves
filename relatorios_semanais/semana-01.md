@@ -12,8 +12,6 @@
 As três leituras da semana 1 (`docs/reading-list.md`: §A1, §C1, §C0).
 
 - **Tyshkovskiy et al. (2026)**, *Nature*, o artigo posto à prova. Retido: o carimbo do relógio de mortalidade vem das curvas de sobrevivência dos fármacos do ITP, e a validação deixou de fora tecidos, conjuntos de dados e espécies, **nunca uma intervenção inteira**.
-- **Prentice (1989)**: critérios operacionais para um marcador substituir um desfecho. Retido: são condições fortes, e "correlaciona" não é uma delas.
-- **CAST (1989)**: dois antiarrítmicos suprimiram a arritmia e duplicaram a mortalidade. Retido: é o contra-exemplo que justifica a tese existir. Prever não é substituir.
 - Documentação do GIT, tAge, repository do GitHub.
 
 ## 2. Escrito
@@ -24,8 +22,8 @@ Tabelas com fármacos e dados relativos
 
 - **Nada de modelação**, por desenho. A semana 1 é portão de viabilidade e o código de modelação só abre depois de o pré-registo estar fechado.
 - **Feito:** descarregados os ficheiros do Zenodo e os metadados do GEO; inspecionadas as colunas para ver se as amostras trazem identificação de fármaco.
-- Foi criada uma tabela de ligação para padronizar nomenclatura dos fármacos entre os dados do Zenodo e do ITP.
-- Foi descoberta a forma de como o diff é calculado. Encontra-se na metodologia do Tyshkovskiy et al. (2026), e refere que foi utilizado uma ANOVA, com o tecido e idade cronológica como covariáveis para calcular a diferença média estimada da idade transcriptómica entre o grupo tratado e o grupo de controlo.
+- Foi criada uma tabela de ligação (table_zenodo_mpd_id) para padronizar nomenclatura dos fármacos entre os dados do Zenodo e do ITP, a partir dessa lista no ITP foi feito o download dos cohorts que continham esses fármacos.
+- Foi descoberta a forma de como o diff é calculado. Encontra-se na metodologia do tAge, e refere que foi centrado na mediana do grupo escolhido (controlo).
 
 ## 4. Números da semana
 
@@ -38,7 +36,8 @@ Tabelas com fármacos e dados relativos
 
 > A terceira linha é o número que decide a tese. Se for baixo (< 8 a 10), a simulação de potência da pergunta 3 do portão vai dizer que o intervalo de confiança é largo de mais, e a pergunta tem de ser reformulada **nesta semana**.
 
-### Dados sobre cada intervenção
+### Dados sobre cada intervenção 
+Tabela sampleinfo
 
 | Intervention                                                  | Year | No of Males | No of Females |
 | ------------------------------------------------------------- | ---: | ----------: | ------------: |

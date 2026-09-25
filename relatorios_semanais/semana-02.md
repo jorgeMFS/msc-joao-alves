@@ -13,7 +13,8 @@
 
 ## 2. Escrito
 
-Tabelas que estão na pasta results
+- Foi criada a tabela table_ITP_Lifespan_Data que inclui todos os samples do ITP dos cohorts que vão ser utilizados numa só tabela.
+- Foi criada a tabela table_Zenodo que exclui da tabela proveniente do Zenodo os samples que não são do ITP e altera a nomenclatura dos fármacos, seguindo a tabela de ligação, para que a nomenclatura dos fármacos seja igual em todas as tabelas.
 
 ## 3. Executado
 
