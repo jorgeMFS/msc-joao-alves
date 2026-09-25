@@ -24,6 +24,7 @@ O que correu de facto, com números. Se não correu nada, escrever "nada". É um
 - **Entrada:** (ficheiro, N amostras)
 - **Resultado:** (o número, não a impressão)
 - **Guardado em:** `results/...`
+- Foi removido o cohort C2011, visto que o 17aE2 do ITP não existe no Zenodo e não existem mais fármacos em comum.
 
 ## 4. Números da semana
 
