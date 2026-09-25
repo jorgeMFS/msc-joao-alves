@@ -1,0 +1,21 @@
+zenodo_id,mpd_id,id
+17-DMAG; 30ppm,DMAG,DMAG
+Minocycline; 300ppm,Min,Min
+Mito Q; 100ppm,MitoQ,MitoQ
+Late-life Rapamycin; 42ppm,Rapa,Rapa
+b-GPA; 3300ppm,bGPA,bGPA
+Canagliflozin; 180ppm,Cana,Cana
+Candesartan cilexetil CC; 30ppm,CC,CC
+Geranylgeranylacetone GGA; 600ppm,GGA,GGA
+Nicotinamide riboside NR; 1000ppm,NR,NR
+MIF098; 240ppm,MIF098,MIF098
+"1,3-butanediol BD; 100000ppm",BD,BD
+Captopril; 180ppm,Capt,Capt
+L-Leucine; 40000ppm,Leucine,Leucine
+PB125; 100ppm,PB125,PB125
+Middle-aged Rapamycin;ÿ 14.7ppm & Acarbose; 1000ppm,RaAc,RaAc_9m
+Rapamycin;ÿ 14.7ppm & Acarbose; 1000ppm (16 mo),RaAc,RaAc_16m
+Sulindac; 5ppm,Sul,Sul
+Syringaresinol; 300ppm,Syr,Syr
+Middle-aged 17-alpha-estradiol; 14.4ppm,17aE2,17aE2
+Late-life 17-alpha-estradiol(20mo),17aE2,17aE2_20m
