@@ -2,7 +2,7 @@
 
 # Semana 02 (2026-09-21 a 2026-09-27)
 
-**Horas dedicadas:** ~N h · **Bloco do plano:** (ex.: 2-4, reproduzir valor publicado)
+**Horas dedicadas:** ~7 h · **Bloco do plano:** (ex.: 2-4, reproduzir valor publicado)
 
 ---
 
@@ -14,7 +14,7 @@
 ## 2. Escrito
 
 - Foi criada a tabela table_ITP_Lifespan_Data que inclui todos os samples do ITP dos cohorts que vão ser utilizados numa só tabela.
-- Foi criada a tabela table_Zenodo que exclui da tabela proveniente do Zenodo os samples que não são do ITP e altera a nomenclatura dos fármacos, seguindo a tabela de ligação, para que a nomenclatura dos fármacos seja igual em todas as tabelas.
+- Foi criada a tabela table_Zenodo que exclui da tabela proveniente do Zenodo os samples que não são do ITP e altera a nomenclatura dos fármacos, seguindo a tabela de ligação, para que a nomenclatura dos fármacos seja igual em todas as tabelas. A esta tabela foi adicionada uma coluna Group que junta as colunas Sex e Cohort, já que o split_by() do tAge apenas aceita uma coluna, como pode ser visto em https://github.com/Gladyshev-Lab/tAge/blob/main/R/preprocessing.R.
 
 ## 3. Executado
 
@@ -28,27 +28,18 @@ O que correu de facto, com números. Se não correu nada, escrever "nada". É um
 
 ## 4. Números da semana
 
-Uma linha por quantidade que mudou. É o que permite ver progresso entre reuniões sem reler tudo.
-
-| Quantidade | Valor | Semana anterior |
-|---|---:|---:|
-| Amostras com fármaco identificado | | |
-| Intervenções com transcriptoma **e** sobrevivência | | |
+Tabelas table_ITP_Lifespan_Data e table_Zenodo
 
 ## 5. Bloqueado
 
-O que impede avançar, e **de quem depende**. Se não houver, escrever "nada".
+Finalizar pre-processamento de dados
 
 - [ ] ...
 
 ## 6. Decisões tomadas
 
-Só as que fecham opções. Cada uma com a razão, porque daqui a três meses ninguém se lembra.
-
-- **Decidido:** ... **Porquê:** ...
+Foram retirados os cohorts C2011 e C2020, visto que não há transcriptomas de nenhum animal dessas cohorts. O Cana, referente ao Canagliflozin nos dados é referente à cohort C2016 (7mo) e não aos fármacos utilizados em C2020.
 
 ## 7. Plano para a próxima semana
 
-Três a cinco pontos, cada um verificável (dá para dizer "feito" ou "não feito").
-
-- [ ] ...
+- [ ] Testar se os scripts dão os mesmos resultados que estão no excel
