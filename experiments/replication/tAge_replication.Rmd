@@ -29,7 +29,7 @@ expression=read.csv(
 
 ### Metadata
 
-#### Trocar por table completa!!!!!!!!
+#### Tabela só com ITP:
 
 ```{r}
 metadata <- read.csv(
@@ -37,6 +37,12 @@ metadata <- read.csv(
     row.names = 1,
     check.names = FALSE
 )
+```
+
+#### Tabela completa:
+
+```{r}
+metadata <- as.data.frame(read_excel("C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/data/raw/Data_annotation_absolute_rodents.xlsx"))
 ```
 
 ## #4 Common Samples
