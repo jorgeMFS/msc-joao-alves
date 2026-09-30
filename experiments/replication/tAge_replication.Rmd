@@ -1,0 +1,370 @@
+# tAge Replication
+
+## #1 Python
+
+```{r}
+Sys.setenv(
+  RETICULATE_PYTHON = "C:/Users/João Alves/AppData/Local/Programs/Python/Python314/python.exe"
+)
+```
+
+## #2 Load Packages
+
+```{r}
+library(tAge)
+library(Biobase)
+```
+
+## #3 Import Data
+
+### Expression
+
+```{r}
+expression=read.csv(
+  "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/data/raw/Expression_data_absolute_rodents_Scaled.csv",
+  row.names = 1,
+  check.names = FALSE
+)
+```
+
+### Metadata
+
+#### Trocar por table completa!!!!!!!!
+
+```{r}
+metadata <- read.csv(
+    "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/results/table_Zenodo.csv",
+    row.names = 1,
+    check.names = FALSE
+)
+```
+
+## #4 Common Samples
+
+### Select Common Samples
+
+```{r}
+common = intersect(colnames(expression),rownames(metadata))
+paste0(length(common)," samples in common")
+```
+
+### Discard Different Samples
+
+```{r}
+expression <- expression[, common]
+
+metadata <- metadata[common, ]
+```
+
+## #5 Create Expression Set
+
+```{r}
+eSet = make_ExpressionSet(
+  expression,
+  metadata
+)
+```
+
+## #6 Gene alignment and subtracting control values
+
+```{r}
+gene_list <- tAge:::load_gene_list()
+
+groups <- unique(metadata$Group)
+
+by_group <- lapply(groups, function(g) {
+  
+  e <- eSet[, metadata$Group == g]
+  
+  e <- tAge:::.align_to_gene_list(
+    e,
+    gene_list
+  )
+  
+  tAge:::control_subtraction(
+    e,
+    column_name = "Intervention",
+    control_label = "Control",
+    verbose = TRUE
+  )
+})
+```
+
+### Bind all the groups in one file
+
+```{r}
+eSet_diff <- tAge:::.tage_cbind_esets(
+  by_group,
+  sample_order = colnames(eSet)
+)
+
+eSet_diff <- tAge:::.tage_set_species(
+  eSet_diff,
+  species = "mouse"
+)
+
+tAge_eSet <- list(
+  scaled_diff = eSet_diff
+)
+```
+
+## #7 Find the Models
+
+```{r}
+folder <- "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/data/raw"
+models <- list.files(
+  folder,
+  pattern = "\\.pkl$",
+  full.names = TRUE
+)
+
+cat("\nModels Found:\n")
+print(basename(models))
+
+if (length(models) == 0) {
+  stop("No .pkl files were found in the folder.")
+}
+```
+
+## #8 Run the Models
+
+```{r}
+predictions <- lapply(models, function(f) {
+  
+  tryCatch({
+    
+    r <- predict_tAge(
+      tAge_eSet,
+      list(scaled_diff = f),
+      mode = "EN"
+    )
+    
+    col <- grep(
+      "EN_tAge$",
+      colnames(r),
+      value = TRUE
+    )[1]
+    
+    if (is.na(col)) {
+      stop("Não foi encontrada a coluna EN_tAge.")
+    }
+    
+    setNames(
+      r[[col]],
+      r$Sample
+    )
+    
+  }, error = function(e) {
+    
+    message(
+      "Failed: ",
+      basename(f),
+      " -> ",
+      conditionMessage(e)
+    )
+    
+    NULL
+  })
+})
+
+
+names(predictions) <- gsub(
+  "^EN_|_scaleddiff\\.pkl$",
+  "",
+  basename(models)
+)
+
+
+predictions <- predictions[
+  !sapply(predictions, is.null)
+]
+
+
+cat("\nModels processed with success:\n")
+print(names(predictions))
+
+
+if (length(predictions) == 0) {
+  stop("No module produced predictions.")
+}
+```
+
+## #9 Table with Info
+
+```{r}
+table <- metadata
+
+table[[" "]] <- ""
+
+for (nm in names(predictions)) {
+  table[[paste0("pred_", nm)]] <- predictions[[nm]]
+}
+
+
+refs <- c(
+  Mortality_Rodents_Liver       = "Expected_Hazard.log10",
+  Mortality_Mouse_Multitissue   = "Expected_Hazard.log10",
+  Mortality_Rodents_Multitissue = "Expected_Hazard.log10"
+)
+
+
+
+valid_models <- intersect(
+  names(refs),
+  names(predictions)
+)
+
+cat("\nModels with defined reference:\n")
+print(valid_models)
+
+if (length(valid_models) == 0) {
+  cat("\nModels' names don't match with 'refs'.\n")
+  cat("Available Models:\n")
+  print(names(predictions))
+  stop("Failed.")
+}
+
+
+for (nm in valid_models) {
+  
+  cat("\n----------------------------------------\n")
+  cat("Processing:", nm, "\n")
+  cat("----------------------------------------\n")
+  
+  pred <- table[[paste0("pred_", nm)]]
+  ref <- table[[refs[nm]]]
+  
+  dif <- pred - ref
+  
+  table[[paste0("dif_", nm)]] <- dif
+  
+  valid <- complete.cases(pred, ref)
+  
+  p <- pred[valid]
+  r <- ref[valid]
+  d <- p - r
+  
+  
+  # ----------------------------------------------------------
+  # Correlação
+  # ----------------------------------------------------------
+  
+  if (length(p) >= 2 && sd(p) > 0 && sd(r) > 0) {
+    correlation <- cor(p, r, method = "pearson")
+  } else {
+    correlation <- NA_real_
+  }
+  
+  
+  # ----------------------------------------------------------
+  # Diferença média
+  # ----------------------------------------------------------
+  
+  if (length(d) > 0) {
+    diff_avg <- mean(d)
+  } else {
+    diff_avg <- NA_real_
+  }
+  
+  
+  # ----------------------------------------------------------
+  # Diferença máxima
+  # ----------------------------------------------------------
+  
+  if (length(d) > 0) {
+    diff_max <- d[which.max(abs(d))]
+  } else {
+    diff_max <- NA_real_
+  }
+  
+  
+  # ----------------------------------------------------------
+  # Colocar métricas numa única célula
+  # ----------------------------------------------------------
+  
+  table[[paste0("cor_", nm)]] <- ""
+  table[[paste0("diff_avg_", nm)]] <- ""
+  table[[paste0("diff_max_", nm)]] <- ""
+  
+  table[[paste0("cor_", nm)]][1] <- round(correlation, 3)
+  table[[paste0("diff_avg_", nm)]][1] <- round(diff_avg, 3)
+  table[[paste0("diff_max_", nm)]][1] <- round(dif_max, 3)
+  
+  
+  cat("Correlation:", round(correlation, 3), "\n")
+  cat("Mean Difference:", round(diff_avg, 3), "\n")
+  cat("Max Difference:", round(dif_max, 3), "\n")
+  
+  
+  # ----------------------------------------------------------
+  # Gráfico
+  # ----------------------------------------------------------
+  
+  if (length(p) >= 1) {
+    
+    file_name <- paste0(
+      "scatter_",
+      gsub("[^A-Za-z0-9_-]", "_", nm),
+      ".png"
+    )
+    
+    png(
+      filename = file.path(
+        "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/experiments/replication",
+        file_name
+      ),
+      width = 1200,
+      height = 1000,
+      res = 150
+    )
+    
+    limites <- range(c(r, p), finite = TRUE)
+    
+    if (diff(limites) == 0) {
+      limites <- limites + c(-0.5, 0.5)
+    }
+    
+    plot(
+      r,
+      p,
+      xlim = limites,
+      ylim = limites,
+      xlab = "Reference Value (Expected_Hazard.log10)",
+      ylab = "Predicted Value (tAge)",
+      main = paste("Prediction VS Reference:", nm),
+      pch = 19,
+      col = "steelblue",
+      cex = 0.8
+    )
+    
+    abline(
+      a = 0,
+      b = 1,
+      lty = 2,
+      lwd = 2,
+      col = "red"
+    )
+    
+    if (!is.na(correlation)) {
+      legend(
+        "topleft",
+        legend = paste("r =", round(correlation, 3)),
+        bty = "n"
+      )
+    }
+    
+    dev.off()
+  }
+}
+
+
+# ============================================================
+# 14. Guardar table
+# ============================================================
+
+write.csv(
+  table,
+  "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/experiments/replication/predictions_tAge.csv",
+  row.names = FALSE
+)
+```
