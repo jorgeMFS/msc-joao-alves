@@ -42,7 +42,12 @@ metadata <- read.csv(
 #### Tabela completa:
 
 ```{r}
-metadata <- as.data.frame(read_excel("C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/data/raw/Data_annotation_absolute_rodents.xlsx"))
+metadata <- as.data.frame(read_excel(
+  "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/data/raw/Data_annotation_absolute_rodents.xlsx",
+  na = c("", "NA"), guess_max = 10000
+))
+
+rownames(metadata) <- as.character(metadata[[1]])
 ```
 
 ## #4 Common Samples
@@ -65,7 +70,7 @@ metadata <- metadata[common, ]
 ## #5 Create Expression Set
 
 ```{r}
-eSet = make_ExpressionSet(
+eset = make_ExpressionSet(
   expression,
   metadata
 )
@@ -76,42 +81,17 @@ eSet = make_ExpressionSet(
 ```{r}
 gene_list <- tAge:::load_gene_list()
 
-groups <- unique(metadata$Group)
+e <- tAge:::.align_to_gene_list(eset, gene_list)
 
-by_group <- lapply(groups, function(g) {
-  
-  e <- eSet[, metadata$Group == g]
-  
-  e <- tAge:::.align_to_gene_list(
-    e,
-    gene_list
-  )
-  
-  tAge:::control_subtraction(
-    e,
-    column_name = "Intervention",
-    control_label = "Control",
-    verbose = TRUE
-  )
-})
-```
-
-### Bind all the groups in one file
-
-```{r}
-eSet_diff <- tAge:::.tage_cbind_esets(
-  by_group,
-  sample_order = colnames(eSet)
+eset_diff <- tAge:::control_subtraction(
+  e,
+  column_name = "Intervention",
+  control_label = "Control",
+  verbose = TRUE
 )
 
-eSet_diff <- tAge:::.tage_set_species(
-  eSet_diff,
-  species = "mouse"
-)
-
-tAge_eSet <- list(
-  scaled_diff = eSet_diff
-)
+eset_diff <- tAge:::.tage_set_species(eset_diff, species = "mouse")
+tAge_eset <- list(scaled_diff = eset_diff)
 ```
 
 ## #7 Find the Models
@@ -140,7 +120,7 @@ predictions <- lapply(models, function(f) {
   tryCatch({
     
     r <- predict_tAge(
-      tAge_eSet,
+      tAge_eset,
       list(scaled_diff = f),
       mode = "EN"
     )
@@ -152,7 +132,7 @@ predictions <- lapply(models, function(f) {
     )[1]
     
     if (is.na(col)) {
-      stop("Não foi encontrada a coluna EN_tAge.")
+      stop("EN_tAge not found.")
     }
     
     setNames(
@@ -272,10 +252,7 @@ for (nm in valid_models) {
     diff_avg <- NA_real_
   }
   
-  
-  # ----------------------------------------------------------
-  # Diferença máxima
-  # ----------------------------------------------------------
+
   
   if (length(d) > 0) {
     diff_max <- d[which.max(abs(d))]
@@ -284,27 +261,19 @@ for (nm in valid_models) {
   }
   
   
-  # ----------------------------------------------------------
-  # Colocar métricas numa única célula
-  # ----------------------------------------------------------
-  
   table[[paste0("cor_", nm)]] <- ""
   table[[paste0("diff_avg_", nm)]] <- ""
   table[[paste0("diff_max_", nm)]] <- ""
   
   table[[paste0("cor_", nm)]][1] <- round(correlation, 3)
   table[[paste0("diff_avg_", nm)]][1] <- round(diff_avg, 3)
-  table[[paste0("diff_max_", nm)]][1] <- round(dif_max, 3)
+  table[[paste0("diff_max_", nm)]][1] <- round(diff_max, 3)
   
   
   cat("Correlation:", round(correlation, 3), "\n")
   cat("Mean Difference:", round(diff_avg, 3), "\n")
-  cat("Max Difference:", round(dif_max, 3), "\n")
+  cat("Max Difference:", round(diff_max, 3), "\n")
   
-  
-  # ----------------------------------------------------------
-  # Gráfico
-  # ----------------------------------------------------------
   
   if (length(p) >= 1) {
     
@@ -362,12 +331,11 @@ for (nm in valid_models) {
     dev.off()
   }
 }
+```
 
+### Save Table
 
-# ============================================================
-# 14. Guardar table
-# ============================================================
-
+```{r}
 write.csv(
   table,
   "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/experiments/replication/predictions_tAge.csv",
