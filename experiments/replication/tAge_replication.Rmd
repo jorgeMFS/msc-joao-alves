@@ -29,7 +29,7 @@ expression=read.csv(
 
 ### Metadata
 
-#### Tabela só com ITP:
+#### *Tabela só com ITPs*
 
 ```{r}
 metadata <- read.csv(
@@ -39,7 +39,7 @@ metadata <- read.csv(
 )
 ```
 
-#### Tabela completa:
+#### *Tabela completa*
 
 ```{r}
 metadata <- as.data.frame(read_excel(
@@ -48,6 +48,12 @@ metadata <- as.data.frame(read_excel(
 ))
 
 rownames(metadata) <- as.character(metadata[[1]])
+```
+
+### Create New Column for Cohort_Lab
+
+```{r}
+metadata$Cohort_Lab <- paste(metadata$Cohort, metadata$Lab, sep = "_")
 ```
 
 ## #4 Common Samples
@@ -78,267 +84,224 @@ eset = make_ExpressionSet(
 
 ## #6 Gene alignment and subtracting control values
 
+### Gene Alignment
+
 ```{r}
 gene_list <- tAge:::load_gene_list()
 
 e <- tAge:::.align_to_gene_list(eset, gene_list)
+```
 
-eset_diff <- tAge:::control_subtraction(
-  e,
-  column_name = "Intervention",
-  control_label = "Control",
-  verbose = TRUE
+### Division by Groups
+
+There will be 4 different groups to calculate the mean control value:
+
+- All 55 controls
+
+- By Cohort and Sex
+
+- By Lab
+
+- By Cohort and Lab
+
+### Subtract_by function
+
+```{r}
+control_column <- "Intervention"
+control_label  <- "Control"
+
+subtract_by <- function(eset, group_cols = NULL, control_col, control_lab) {
+  mat  <- Biobase::exprs(eset)
+  meta <- Biobase::pData(eset)
+  
+  is_control <- meta[[control_col]] %in% control_lab
+  group_id <- if (is.null(group_cols)) {
+    rep("all", ncol(mat))
+  } else {
+    do.call(paste, c(meta[group_cols], sep = "_"))
+  }
+  
+  out <- mat
+  has_controls <- rep(TRUE, ncol(mat))
+  
+  for (g in unique(group_id)) {
+    in_group   <- group_id == g
+    ctrl_group <- in_group & is_control
+    if (sum(ctrl_group) == 0) {
+      has_controls[in_group] <- FALSE
+      next
+    }
+    control_median <- apply(mat[, ctrl_group, drop = FALSE], 1, median, na.rm = TRUE)
+    out[, in_group] <- mat[, in_group, drop = FALSE] - control_median
+  }
+  
+  if (any(!has_controls)) {
+    message(sum(!has_controls), " samples dropped (no controls in their group)")
+  }
+  
+  Biobase::exprs(eset) <- out
+  eset[, has_controls]
+}
+```
+
+### Control Subtraction by groups
+
+```{r}
+groups <- list(
+  All_Controls = NULL,
+  Cohort_Sex   = c("Cohort", "Sex"), # Esta linha acho que está "mal", poderia ser "Group"
+  Lab          = "Lab",
+  Cohort_Lab   = "Cohort_Lab"
 )
 
-eset_diff <- tAge:::.tage_set_species(eset_diff, species = "mouse")
-tAge_eset <- list(scaled_diff = eset_diff)
+eset_by_group <- lapply(groups, function(cols) {
+  subtract_by(e, cols, control_column, control_label)
+})
 ```
 
 ## #7 Find the Models
 
 ```{r}
-folder <- "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/data/raw"
-models <- list.files(
-  folder,
-  pattern = "\\.pkl$",
-  full.names = TRUE
-)
+model_dir <- "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/data/raw"
 
-cat("\nModels Found:\n")
-print(basename(models))
-
-if (length(models) == 0) {
-  stop("No .pkl files were found in the folder.")
-}
+model_files <- list.files(model_dir, pattern = "\\.pkl$", full.names = TRUE)
+basename(model_files)
 ```
 
 ## #8 Run the Models
 
 ```{r}
-predictions <- lapply(models, function(f) {
-  
-  tryCatch({
-    
-    r <- predict_tAge(
-      tAge_eset,
-      list(scaled_diff = f),
-      mode = "EN"
-    )
-    
-    col <- grep(
-      "EN_tAge$",
-      colnames(r),
-      value = TRUE
-    )[1]
-    
-    if (is.na(col)) {
-      stop("EN_tAge not found.")
-    }
-    
-    setNames(
-      r[[col]],
-      r$Sample
-    )
-    
-  }, error = function(e) {
-    
-    message(
-      "Failed: ",
-      basename(f),
-      " -> ",
-      conditionMessage(e)
-    )
-    
-    NULL
-  })
-})
-
-
-names(predictions) <- gsub(
-  "^EN_|_scaleddiff\\.pkl$",
-  "",
-  basename(models)
-)
-
-
-predictions <- predictions[
-  !sapply(predictions, is.null)
-]
-
-
-cat("\nModels processed with success:\n")
-print(names(predictions))
-
-
-if (length(predictions) == 0) {
-  stop("No module produced predictions.")
-}
-```
-
-## #9 Table with Info
-
-```{r}
-table <- metadata
-
-table[[" "]] <- ""
-
-for (nm in names(predictions)) {
-  table[[paste0("pred_", nm)]] <- predictions[[nm]]
-}
-
-
-refs <- c(
-  Mortality_Rodents_Liver       = "Expected_Hazard.log10",
-  Mortality_Mouse_Multitissue   = "Expected_Hazard.log10",
+references <- c(
+  Mortality_Rodents_Liver = "Expected_Hazard.log10",
+  Mortality_Mouse_Multitissue = "Expected_Hazard.log10",
   Mortality_Rodents_Multitissue = "Expected_Hazard.log10"
 )
 
+results_list <- list()
 
-
-valid_models <- intersect(
-  names(refs),
-  names(predictions)
-)
-
-cat("\nModels with defined reference:\n")
-print(valid_models)
-
-if (length(valid_models) == 0) {
-  cat("\nModels' names don't match with 'refs'.\n")
-  cat("Available Models:\n")
-  print(names(predictions))
-  stop("Failed.")
-}
-
-
-for (nm in valid_models) {
+for (group_name in names(eset_by_group)) {
+  e_sub <- eset_by_group[[group_name]]
+  meta_sub <- Biobase::pData(e_sub)
   
-  cat("\n----------------------------------------\n")
-  cat("Processing:", nm, "\n")
-  cat("----------------------------------------\n")
-  
-  pred <- table[[paste0("pred_", nm)]]
-  ref <- table[[refs[nm]]]
-  
-  dif <- pred - ref
-  
-  table[[paste0("dif_", nm)]] <- dif
-  
-  valid <- complete.cases(pred, ref)
-  
-  p <- pred[valid]
-  r <- ref[valid]
-  d <- p - r
-  
-  
-  # ----------------------------------------------------------
-  # Correlação
-  # ----------------------------------------------------------
-  
-  if (length(p) >= 2 && sd(p) > 0 && sd(r) > 0) {
-    correlation <- cor(p, r, method = "pearson")
-  } else {
-    correlation <- NA_real_
-  }
-  
-  
-  # ----------------------------------------------------------
-  # Diferença média
-  # ----------------------------------------------------------
-  
-  if (length(d) > 0) {
-    diff_avg <- mean(d)
-  } else {
-    diff_avg <- NA_real_
-  }
-  
-
-  
-  if (length(d) > 0) {
-    diff_max <- d[which.max(abs(d))]
-  } else {
-    diff_max <- NA_real_
-  }
-  
-  
-  table[[paste0("cor_", nm)]] <- ""
-  table[[paste0("diff_avg_", nm)]] <- ""
-  table[[paste0("diff_max_", nm)]] <- ""
-  
-  table[[paste0("cor_", nm)]][1] <- round(correlation, 3)
-  table[[paste0("diff_avg_", nm)]][1] <- round(diff_avg, 3)
-  table[[paste0("diff_max_", nm)]][1] <- round(diff_max, 3)
-  
-  
-  cat("Correlation:", round(correlation, 3), "\n")
-  cat("Mean Difference:", round(diff_avg, 3), "\n")
-  cat("Max Difference:", round(diff_max, 3), "\n")
-  
-  
-  if (length(p) >= 1) {
-    
-    file_name <- paste0(
-      "scatter_",
-      gsub("[^A-Za-z0-9_-]", "_", nm),
-      ".png"
-    )
-    
-    png(
-      filename = file.path(
-        "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/experiments/replication",
-        file_name
-      ),
-      width = 1200,
-      height = 1000,
-      res = 150
-    )
-    
-    limites <- range(c(r, p), finite = TRUE)
-    
-    if (diff(limites) == 0) {
-      limites <- limites + c(-0.5, 0.5)
+  for (model_name in names(references)) {
+    model_path <- model_files[grepl(model_name, basename(model_files), fixed = TRUE)]
+    if (length(model_path) != 1) {
+      warning(model_name, ": ", length(model_path), " matching files, skipped")
+      next
     }
     
-    plot(
-      r,
-      p,
-      xlim = limites,
-      ylim = limites,
-      xlab = "Reference Value (Expected_Hazard.log10)",
-      ylab = "Predicted Value (tAge)",
-      main = paste("Prediction VS Reference:", nm),
-      pch = 19,
-      col = "steelblue",
-      cex = 0.8
+    pred <- predict_tAge(
+      list(scaled_diff = e_sub),
+      list(scaled_diff = model_path),
+      species = "mouse",
+      mode ="EN"
     )
     
-    abline(
-      a = 0,
-      b = 1,
-      lty = 2,
-      lwd = 2,
-      col = "red"
+    pred_cols <- setdiff(colnames(pred), colnames(meta_sub))
+    pred_col  <- pred_cols[!grepl("_sd$", pred_cols)][1]
+    
+    obtained   <- pred[[pred_col]]
+    expected   <- as.numeric(meta_sub[[references[[model_name]]]])
+    difference <- obtained - expected
+    sign_diff  <- ifelse(is.na(difference), NA,
+                         ifelse(difference > 0, "+", ifelse(difference < 0, "-", "0")))
+    
+    block <- data.frame(
+      Obtained   = obtained,
+      Difference = difference,
+      Sign       = sign_diff,
+      Mean_Abs_Difference = NA_real_,
+      Max_Abs_Difference  = NA_real_,
+      SD_Difference       = NA_real_,
+      Pearson  = NA_real_,
+      Spearman = NA_real_,
+      row.names = colnames(e_sub)
     )
     
-    if (!is.na(correlation)) {
-      legend(
-        "topleft",
-        legend = paste("r =", round(correlation, 3)),
-        bty = "n"
-      )
-    }
+    # summary metrics: only the first row of each block
+    block$Mean_Abs_Difference[1] <- mean(abs(difference), na.rm = TRUE)
+    block$Max_Abs_Difference[1]  <- max(abs(difference), na.rm = TRUE)
+    block$SD_Difference[1]       <- sd(difference, na.rm = TRUE)
+    block$Pearson[1]  <- cor(obtained, expected, use = "complete.obs", method = "pearson")
+    block$Spearman[1] <- cor(obtained, expected, use = "complete.obs", method = "spearman")
     
-    dev.off()
+    names(block) <- paste(group_name, model_name, names(block), sep = "__")
+    results_list[[paste(group_name, model_name, sep = "__")]] <- block
   }
 }
 ```
 
-### Save Table
+## #9 Results Table
 
 ```{r}
-write.csv(
-  table,
-  "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/experiments/replication/predictions_tAge.csv",
-  row.names = FALSE
+# align every block to the metadata rows (dropped samples become NA)
+aligned_blocks <- lapply(results_list, function(b) {
+  out <- b[rownames(metadata), , drop = FALSE]
+  rownames(out) <- NULL
+  out
+})
+
+results_table <- data.frame(
+  Sample = rownames(metadata),
+  metadata,
+  " " = NA,                   
+  do.call(cbind, unname(aligned_blocks)),
+  check.names = FALSE,
+  row.names = NULL
+)
+
+write.csv(results_table,"C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/experiments/replication/tAge_replication_results.csv")
+```
+
+## #10 Graphs
+
+```{r}
+library(ggplot2)
+
+plot_data <- do.call(rbind, lapply(names(aligned_blocks), function(key) {
+  parts <- strsplit(key, "__")[[1]]
+  data.frame(
+    Control_Group = parts[1],
+    Model    = parts[2],
+    Sample   = rownames(metadata),
+    Obtained = aligned_blocks[[key]][[paste(key, "Obtained", sep = "__")]],
+    Expected = as.numeric(metadata[["Expected_Hazard.log10"]]),
+    Lab      = metadata$Lab
+  )
+}))
+
+# Pearson r per panel, shown in the corner
+panel_stats <- do.call(rbind, lapply(
+  split(plot_data, list(plot_data$Control_Group, plot_data$Model), drop = TRUE),
+  function(d) {
+    data.frame(
+      Control_Group = d$Control_Group[1],
+      Model = d$Model[1],
+      label = sprintf("r = %.2f", cor(d$Obtained, d$Expected, use = "complete.obs"))
+    )
+  }
+))
+
+scatter_plot <- ggplot(plot_data, aes(x = Expected, y = Obtained, colour = Lab)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey50") +
+  geom_point(alpha = 0.7, size = 1.8, na.rm = TRUE) +
+  geom_text(
+    data = panel_stats, aes(label = label),
+    x = -Inf, y = Inf, hjust = -0.1, vjust = 1.5,
+    inherit.aes = FALSE, size = 3.5
+  ) +
+  facet_grid(Control_Group ~ Model) +
+  labs(
+    x = "Expected hazard (log10)",
+    y = "Obtained hazard (log10)",
+    title = "Obtained vs expected hazard by control group and model"
+  ) +
+  theme_bw()
+
+scatter_plot
+
+ggsave(
+  "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/results/tAge_scatterplots.png",
+  scatter_plot, width = 14, height = 11, dpi = 300
 )
 ```
