@@ -1,25 +1,28 @@
-Intervention,Year,No of Males,No of Females
-Control (2015),2015,300,280
-Control (2016),2016,303,304
-Control (2017),2017,300,280
-17-DMAG; 30ppm,2015,156,136
-Minocycline; 300ppm,2015,156,136
-Mito Q; 100ppm,2015,156,136
-Late-life Rapamycin; 42ppm,2015,156,136
-b-GPA; 3300ppm,2015,156,136
-Canagliflozin; 180ppm,2016,156,136
-Late-life 17-alpha-estradiol (20 mo),2016,159,0
-Candesartan cilexetil CC; 30ppm,2016,156,136
-Geranylgeranylacetone GGA; 600ppm,2016,156,136
-Nicotinamide riboside NR; 1000ppm,2016,156,136
-MIF098; 240ppm,2016,156,136
-"1,3-butanediol BD; 100000ppm",2017,156,136
-Captopril; 180ppm,2017,156,136
-L-Leucine; 40000ppm,2017,156,136
-PB125; 100ppm,2017,156,136
-Middle-aged Rapamycin;ÿ 14.7ppm & Acarbose; 1000ppm (9 months),2017,156,136
-Rapamycin;ÿ 14.7ppm & Acarbose; 1000ppm,2017,156,136
-Sulindac; 5ppm,2017,156,136
-Syringaresinol; 300ppm,2017,156,136
-,,,
-,,,
+Intervention,Year,No of Males,No of Females,
+Control (2015),2015,300,280,
+Control (2016),2016,303,304,
+Control (2017),2017,300,280,
+DMAG,2015,156,136,
+Min,2015,156,136,
+MitoQ,2015,156,136,
+Rapa_Start_Stop,2015,153,136,
+Rapa_Cycle,2015,159,136,
+Rapa_Continuous,2015,156,136,
+bGPA,2015,156,136,
+Cana,2016,156,136,
+17aE2_16m,2016,156,0,
+17aE2_20m,2016,159,0,
+CC,2016,156,136,
+GGA,2016,156,136,
+NR,2016,156,136,
+MIF098,2016,156,136,
+BD,2017,156,136,
+Capt,2017,156,136,
+Leu,2017,156,136,
+PB125,2017,156,136,
+RaAc_9m,2017,156,136,
+RaAc_16m,2017,156,136,
+Sul,2017,156,136,
+Syr,2017,156,136,
+Total Samples,,4338,3584,7922
+,,,,
