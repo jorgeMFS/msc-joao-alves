@@ -5,18 +5,16 @@ Toda a junção acontece aqui, para que o resto do código não tenha de saber d
 """
 from pathlib import Path
 
-import pyreadr
-
 import pandas as pd
 
-RAW = Path(__file__).resolve().parents[2] / "data" / "raw"
+RAW = Path(__file__).resolve().parents[2]
 
 
 def carregar_expressao(path=None):
     """Matriz de expressão do Zenodo. Linhas = amostras, colunas = genes."""
     if path is None:
-        path=RAW/"Expression_data_absolute_rodents.rds"
-    df=pyreadr.read_r(path)
+        path=RAW/"data"/"raw"/"Expression_data_absolute_rodents_Scaled.csv"
+    df=pd.read_csv(path)
     return df
 
 
@@ -27,12 +25,18 @@ def carregar_metadados_amostras(path=None):
     GEO (GSE292885) e na tabela suplementar antes de dar por perdido.
     Entregável da semana 1: results/tabela_amostras.csv
     """
-    raise NotImplementedError("semana 1")
+    if path is None:
+        path=RAW/"results"/"table_Zenodo.csv"
+    df=pd.read_csv(path)
+    return df
 
 
 def carregar_sobrevivencia(path=None):
     """Ficheiro do ITP1: fármaco, dose, sexo, idade de início, sítio, idade de morte."""
-    raise NotImplementedError("semana 1")
+    if path is None:
+        path=RAW/"results"/"table_ITP_Lifespan_Data.csv"
+    df=pd.read_csv(path)
+    return df
 
 
 def construir_tabela_intervencoes(amostras, sobrevivencia, definicao="composto"):
@@ -47,4 +51,4 @@ def construir_tabela_intervencoes(amostras, sobrevivencia, definicao="composto")
              hr_m, hr_f, e os respetivos erros padrão.
     Entregável da semana 1: results/intervencoes.csv
     """
-    raise NotImplementedError("semana 1")
+raise NotImplementedError("semana 1")

@@ -2,7 +2,9 @@ zenodo_id,mpd_id,id,Notas
 17-DMAG; 30ppm,DMAG,DMAG,
 Minocycline; 300ppm,Min,Min,
 Mito Q; 100ppm,MitoQ,MitoQ,
-Late-life Rapamycin; 42ppm,Rapa,Rapa,
+Late-life Rapamycin; 42ppm,rapa_hi_start_stop,Rapa_Start_Stop,Start-Stop
+Late-life Rapamycin; 42ppm,rapa_hi_cycle,Rapa_Cycle,Cycle
+Late-life Rapamycin; 42ppm,rapa_hi_continuous,Rapa_Continuous,Continuous
 b-GPA; 3300ppm,bGPA,bGPA,
 Canagliflozin; 180ppm,Cana,Cana,C2016 (7 mo)
 Candesartan cilexetil CC; 30ppm,CC,CC,
@@ -13,8 +15,8 @@ MIF098; 240ppm,MIF098,MIF098,
 Captopril; 180ppm,Capt,Capt,
 L-Leucine; 40000ppm,Leucine,Leucine,
 PB125; 100ppm,PB125,PB125,
-Middle-aged Rapamycin;ÿ 14.7ppm & Acarbose; 1000ppm,RaAc,RaAc_9m,
-Rapamycin;ÿ 14.7ppm & Acarbose; 1000ppm (16 mo),RaAc,RaAc_16m,
+Middle-aged Rapamycin;  14.7ppm & Acarbose; 1000ppm,RaAc,RaAc_9m,
+Rapamycin;  14.7ppm & Acarbose; 1000ppm (16 mo),RaAc,RaAc_16m,
 Sulindac; 5ppm,Sul,Sul,
 Syringaresinol; 300ppm,Syr,Syr,
 Middle-aged 17-alpha-estradiol; 14.4ppm,17aE2_16m,17aE2_16m,
