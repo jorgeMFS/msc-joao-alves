@@ -1,10 +1,12 @@
 # tAge Replication
 
-## #1 Python
+## #1 Python and Directories
 
 ```{r}
+dir_python=system("where python", intern=TRUE)
+
 Sys.setenv(
-  RETICULATE_PYTHON = "C:/Users/João Alves/AppData/Local/Programs/Python/Python314/python.exe"
+  RETICULATE_PYTHON = utils::shortPathName(dir_python[1])
 )
 ```
 
@@ -13,6 +15,9 @@ Sys.setenv(
 ```{r}
 library(tAge)
 library(Biobase)
+library(ggplot2)
+library(here)
+library(readxl)
 ```
 
 ## #3 Import Data
@@ -20,8 +25,7 @@ library(Biobase)
 ### Expression
 
 ```{r}
-expression=read.csv(
-  "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/data/raw/Expression_data_absolute_rodents_Scaled.csv",
+expression=read.csv(here("data","raw","Expression_data_absolute_rodents_Scaled.csv"),
   row.names = 1,
   check.names = FALSE
 )
@@ -32,8 +36,7 @@ expression=read.csv(
 #### *Tabela só com ITPs*
 
 ```{r}
-metadata <- read.csv(
-    "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/results/table_Zenodo.csv",
+metadata <- read.csv(here("results","table_Zenodo.csv"),
     row.names = 1,
     check.names = FALSE
 )
@@ -42,8 +45,7 @@ metadata <- read.csv(
 #### *Tabela completa*
 
 ```{r}
-metadata <- as.data.frame(read_excel(
-  "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/data/raw/Data_annotation_absolute_rodents.xlsx",
+metadata <- as.data.frame(read_excel(here("data","raw","Data_annotation_absolute_rodents.xlsx"),
   na = c("", "NA"), guess_max = 10000
 ))
 
@@ -159,10 +161,31 @@ eset_by_group <- lapply(groups, function(cols) {
 })
 ```
 
+### Subtract Controls from Expected_Hazard.log10
+
+```{r}
+center_by <- function(values, meta, group_cols = NULL, control_col, control_lab) {
+  is_control <- meta[[control_col]] %in% control_lab
+  group_id <- if (is.null(group_cols)) {
+    rep("all", length(values))
+  } else {
+    do.call(paste, c(meta[group_cols], sep = "_"))
+  }
+  
+  out <- values
+  for (g in unique(group_id)) {
+    in_group <- group_id == g
+    control_median <- median(values[in_group & is_control], na.rm = TRUE)
+    out[in_group] <- values[in_group] - control_median
+  }
+  out
+}
+```
+
 ## #7 Find the Models
 
 ```{r}
-model_dir <- "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/data/raw"
+model_dir <- here("data","raw")
 
 model_files <- list.files(model_dir, pattern = "\\.pkl$", full.names = TRUE)
 basename(model_files)
@@ -200,16 +223,21 @@ for (group_name in names(eset_by_group)) {
     pred_cols <- setdiff(colnames(pred), colnames(meta_sub))
     pred_col  <- pred_cols[!grepl("_sd$", pred_cols)][1]
     
-    obtained   <- pred[[pred_col]]
-    expected   <- as.numeric(meta_sub[[references[[model_name]]]])
+    stopifnot(all(colnames(e_sub) %in% rownames(pred)))
+    obtained <- pred[colnames(e_sub), pred_col]
+    expected <- center_by(
+      as.numeric(meta_sub[[references[[model_name]]]]),
+      meta_sub,
+      groups[[group_name]],
+      control_column,
+      control_label
+    )
     difference <- obtained - expected
-    sign_diff  <- ifelse(is.na(difference), NA,
-                         ifelse(difference > 0, "+", ifelse(difference < 0, "-", "0")))
     
     block <- data.frame(
       Obtained   = obtained,
+      Expected_Centered = expected,
       Difference = difference,
-      Sign       = sign_diff,
       Mean_Abs_Difference = NA_real_,
       Max_Abs_Difference  = NA_real_,
       SD_Difference       = NA_real_,
@@ -234,30 +262,43 @@ for (group_name in names(eset_by_group)) {
 ## #9 Results Table
 
 ```{r}
-# align every block to the metadata rows (dropped samples become NA)
 aligned_blocks <- lapply(results_list, function(b) {
   out <- b[rownames(metadata), , drop = FALSE]
   rownames(out) <- NULL
   out
 })
 
+expected_centered <- sapply(names(groups), function(g) {
+  center_by(
+    as.numeric(metadata[["Expected_Hazard.log10"]]),
+    metadata,
+    groups[[g]],
+    control_column,
+    control_label
+  )
+})
+colnames(expected_centered) <- paste0(names(groups), "__Expected_Hazard.log10_centered")
+
 results_table <- data.frame(
   Sample = rownames(metadata),
   metadata,
-  " " = NA,                   
+  expected_centered,
+  " " = NA,
   do.call(cbind, unname(aligned_blocks)),
   check.names = FALSE,
   row.names = NULL
 )
 
-write.csv(results_table,"C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/experiments/replication/tAge_replication_results.csv")
+write.csv(results_table,
+          here("experiments","replication","tAge_replication_results.csv"),
+          na="",
+          row.names= FALSE
+          )
 ```
 
 ## #10 Graphs
 
 ```{r}
-library(ggplot2)
-
 plot_data <- do.call(rbind, lapply(names(aligned_blocks), function(key) {
   parts <- strsplit(key, "__")[[1]]
   data.frame(
@@ -265,7 +306,7 @@ plot_data <- do.call(rbind, lapply(names(aligned_blocks), function(key) {
     Model    = parts[2],
     Sample   = rownames(metadata),
     Obtained = aligned_blocks[[key]][[paste(key, "Obtained", sep = "__")]],
-    Expected = as.numeric(metadata[["Expected_Hazard.log10"]]),
+    Expected = aligned_blocks[[key]][[paste(key, "Expected_Centered", sep = "__")]],
     Lab      = metadata$Lab
   )
 }))
@@ -300,8 +341,7 @@ scatter_plot <- ggplot(plot_data, aes(x = Expected, y = Obtained, colour = Lab))
 
 scatter_plot
 
-ggsave(
-  "C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/results/tAge_scatterplots.png",
+ggsave(here("experiments","replication","tAge_scatterplots.png"),
   scatter_plot, width = 14, height = 11, dpi = 300
 )
 ```
