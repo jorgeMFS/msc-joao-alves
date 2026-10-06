@@ -46,3 +46,6 @@ No script `tAge_replication` não é usada a tabela dos metadados completa, apen
 
 ## 7. Plano para a próxima semana
 
+Confirmar que intervenções usar
+Remover rapamycin start-stop e continuous
+Corrigir código Rmd e .py
