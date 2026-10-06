@@ -1,6 +1,6 @@
 <!-- Copiar este ficheiro para semana-NN.md todas as sextas (semana-01.md, semana-02.md, ...). -->
 
-# Semana 02 (2026-09-28 a 2026-10-04)
+# Semana 3 (2026-09-28 a 2026-10-04)
 
 **Horas dedicadas:** ~10 h · **Bloco do plano:** (ex.: 2-4, reproduzir valor publicado)
 
@@ -37,6 +37,8 @@ Os valores da correlação de Pearson obtidos referente a esse grupo são:
 
 
 ## 5. Bloqueado
+
+Saber qual foi o grupo de medianas usado
 
 
 ## 6. Decisões tomadas
