@@ -1,23 +1,20 @@
 # tAge Replication
 
-## #1 Python and Directories
+## #1 Load Packages
 
 ```{r}
-dir_python=system("where python", intern=TRUE)
-
-Sys.setenv(
-  RETICULATE_PYTHON = utils::shortPathName(dir_python[1])
-)
-```
-
-## #2 Load Packages
-
-```{r}
+library(reticulate)
 library(tAge)
 library(Biobase)
 library(ggplot2)
 library(here)
 library(readxl)
+```
+
+## #2 Python and Directories
+
+```{r}
+reticulate::py_require(c("joblib", "pandas", "scikit-learn", "numpy"))
 ```
 
 ## #3 Import Data
@@ -33,23 +30,13 @@ expression=read.csv(here("data","raw","Expression_data_absolute_rodents_Scaled.c
 
 ### Metadata
 
-#### *Tabela só com ITPs*
+Tabela só com ITPs
 
 ```{r}
 metadata <- read.csv(here("results","table_Zenodo.csv"),
     row.names = 1,
     check.names = FALSE
 )
-```
-
-#### *Tabela completa*
-
-```{r}
-metadata <- as.data.frame(read_excel(here("data","raw","Data_annotation_absolute_rodents.xlsx"),
-  na = c("", "NA"), guess_max = 10000
-))
-
-rownames(metadata) <- as.character(metadata[[1]])
 ```
 
 ### Create New Column for Cohort_Lab
