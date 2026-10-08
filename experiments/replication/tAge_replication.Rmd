@@ -43,6 +43,8 @@ metadata <- read.csv(here("results","table_Zenodo.csv"),
 
 ```{r}
 metadata$Cohort_Lab <- paste(metadata$Cohort, metadata$Lab, sep = "_")
+metadata$Cohort_Sex <- paste(metadata$Cohort, metadata$Sex, sep = "_")
+metadata$Sex_Age <- paste(metadata$Sex, metadata$Age.days, sep = "_")
 ```
 
 ## #4 Common Samples
@@ -138,14 +140,16 @@ subtract_by <- function(eset, group_cols = NULL, control_col, control_lab) {
 ```{r}
 groups <- list(
   All_Controls = NULL,
-  Cohort_Sex   = c("Cohort", "Sex"), # Esta linha acho que está "mal", poderia ser "Group"
+  Cohort_Sex   = "Cohort_Sex",
   Lab          = "Lab",
-  Cohort_Lab   = "Cohort_Lab"
+  Cohort_Lab   = "Cohort_Lab",
+  Sex_Age      = "Sex_Age"
 )
 
 eset_by_group <- lapply(groups, function(cols) {
   subtract_by(e, cols, control_column, control_label)
 })
+eset_by_group$Sex_Age <- eset_by_group$Sex_Age[, eset_by_group$Sex_Age$Age.days == 660]
 ```
 
 ### Subtract Controls from Expected_Hazard.log10
