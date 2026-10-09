@@ -39,12 +39,14 @@ metadata <- read.csv(here("results","table_Zenodo.csv"),
 )
 ```
 
-### Create New Column for Cohort_Lab
+### Create New Columns for Control Groups
 
 ```{r}
 metadata$Cohort_Lab <- paste(metadata$Cohort, metadata$Lab, sep = "_")
 metadata$Cohort_Sex <- paste(metadata$Cohort, metadata$Sex, sep = "_")
 metadata$Sex_Age <- paste(metadata$Sex, metadata$Age.days, sep = "_")
+metadata$Cohort_Sex_Age <- paste(metadata$Cohort, metadata$Sex, metadata$Age.days, sep = "_")
+metadata$Cohort_Lab_Age <- paste(metadata$Cohort, metadata$Lab, metadata$Age.days, sep = "_")
 ```
 
 ## #4 Common Samples
@@ -60,7 +62,6 @@ paste0(length(common)," samples in common")
 
 ```{r}
 expression <- expression[, common]
-
 metadata <- metadata[common, ]
 ```
 
@@ -140,16 +141,14 @@ subtract_by <- function(eset, group_cols = NULL, control_col, control_lab) {
 ```{r}
 groups <- list(
   All_Controls = NULL,
-  Cohort_Sex   = "Cohort_Sex",
   Lab          = "Lab",
-  Cohort_Lab   = "Cohort_Lab",
-  Sex_Age      = "Sex_Age"
+  Cohort_Sex   = "Cohort_Sex",
+  Cohort_Lab   = "Cohort_Lab"
 )
 
 eset_by_group <- lapply(groups, function(cols) {
   subtract_by(e, cols, control_column, control_label)
 })
-eset_by_group$Sex_Age <- eset_by_group$Sex_Age[, eset_by_group$Sex_Age$Age.days == 660]
 ```
 
 ### Subtract Controls from Expected_Hazard.log10
@@ -180,6 +179,25 @@ model_dir <- here("data","raw")
 
 model_files <- list.files(model_dir, pattern = "\\.pkl$", full.names = TRUE)
 basename(model_files)
+```
+
+### Confirm that the models are linear
+
+```{r}
+r <- rnorm(nrow(exprs(e)))
+
+e2 <- e
+exprs(e2) <- exprs(e) - r
+
+for (model_path in model_files) {
+  
+    p1 <- predict_tAge(list(scaled_diff=e),  list(scaled_diff=model_path), species="mouse", mode="EN")
+    p2 <- predict_tAge(list(scaled_diff=e2), list(scaled_diff=model_path), species="mouse", mode="EN")
+    
+    delta <- p1$scaled_diff_EN_tAge - p2$scaled_diff_EN_tAge
+    
+  cat(basename(model_path), ":", sd(delta), "\n")
+}
 ```
 
 ## #8 Run the Models
