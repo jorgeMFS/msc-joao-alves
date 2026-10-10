@@ -268,6 +268,72 @@ for (group_name in names(eset_by_group)) {
 }
 ```
 
+## #8.1 Run the Models without center_by
+
+```{r}
+# 8.1 d = previsão sem subtrair − Expected_Hazard.log10 (absoluto), por grupo
+
+models <- c("Mortality_Rodents_Liver",
+            "Mortality_Mouse_Multitissue",
+            "Mortality_Rodents_Multitissue")
+meta <- Biobase::pData(e)
+
+# d de cada amostra, para um modelo
+get_d <- function(model_name) {
+  model_path <- model_files[grepl(model_name, basename(model_files), fixed = TRUE)]
+  stopifnot(length(model_path) == 1)
+  
+  pred <- predict_tAge(list(scaled_diff = e), list(scaled_diff = model_path),
+                       species = "mouse", mode = "EN")
+  pred_cols <- setdiff(colnames(pred), colnames(meta))
+  pred_col  <- pred_cols[!grepl("_sd$", pred_cols)][1]
+  
+  samples  <- colnames(e)
+  obtained <- as.numeric(pred[samples, pred_col])
+  expected <- as.numeric(meta[samples, "Expected_Hazard.log10"])
+  setNames(obtained - expected, samples)
+}
+
+d_list <- lapply(setNames(models, models), get_d)
+
+# identificador de grupo de cada amostra
+group_id <- function(cols, m) {
+  if (is.null(cols)) rep("all", nrow(m)) else do.call(paste, c(m[cols], sep = "_"))
+}
+
+# N, média e desvio-padrão de d dentro de cada grupo
+d_summary <- do.call(rbind, lapply(names(d_list), function(model_name) {
+  d <- d_list[[model_name]]
+  m <- meta[names(d), , drop = FALSE]
+  do.call(rbind, lapply(names(groups), function(group_name) {
+    id <- group_id(groups[[group_name]], m)
+    data.frame(
+      Model    = model_name,
+      Grouping = group_name,
+      Group    = names(tapply(d, id, length)),
+      N        = as.integer(tapply(d, id, length)),
+      Mean_d   = as.numeric(tapply(d, id, mean)),
+      SD_d     = as.numeric(tapply(d, id, sd))
+    )
+  }))
+}))
+
+# um desvio-padrão por regra de controlo (junta os grupos)
+pooled_sd <- function(df) {
+  ok <- df$N > 1
+  sqrt(sum((df$N[ok] - 1) * df$SD_d[ok]^2) / sum(df$N[ok] - 1))
+}
+
+key <- paste(d_summary$Model, d_summary$Grouping, sep = "__")
+d_pooled <- do.call(rbind, lapply(split(d_summary, key), function(df) {
+  data.frame(Model = df$Model[1], Grouping = df$Grouping[1],
+             N_Groups = nrow(df), Pooled_SD = pooled_sd(df))
+}))
+
+print(d_summary, row.names = FALSE)   # d por grupo
+print(d_pooled,  row.names = FALSE)   # SD por regra, para comparar
+```
+
 ## #9 Results Table
 
 ```{r}
