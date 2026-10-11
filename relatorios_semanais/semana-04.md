@@ -97,20 +97,15 @@ Prevê a diferença relativamente à referência, por exemplo: +10.
 **Para quê?**
 Focar o modelo na diferença biológica relativamente ao grupo de referência, em vez de simplesmente prever o valor absoluto.
 
----
-
 ## 2. Escrito
 
-- Foi escrito o código completo da replicação do estudo (`tAge_replication.rmd`)
-
+- Foi escrito o código da replicação do estudo (`tAge_replication.rmd`), no caso o cálculo do valor D (D=obtained-expected).
 
 ## 3. Executado
 
-
 - **Comando/notebook:** `experiments/replication/tAge_replication.rmd`
-- **Entrada:** (`data/raw/Expression_data_absolute_rodents_Scaled.csv`, e `results/table_Zenodo.csv`, 161 amostras)
-- **Resultado:** Valores de R (Pearson) mais altos para o grupo de todos os controlos (0.90, 0.75 e 0.97)
-- **Guardado em:** `replication/tAge_replication_results.csv/` e `replication/tAge_replication.png`
+- **Resultado:** valores de D muito dispersos
+- **Guardado em:** `replication/calculod.csv` e `replication/tAge_replication.Rmd`
 
 A versão do sklearn usada na replicação é 1.9.1
 
@@ -119,23 +114,17 @@ A versão do sklearn usada na replicação é 1.9.1
 - Samples: 161
 - Controlos: 55
 
-Em relação aos resultados da replicação, é provável que o estudo tenha usado todos os controlos como um só grupo para calcular a mediana.
-Os valores da correlação de Pearson obtidos referente a esse grupo são:
-
-- Mortality_Mouse_Multitissue: 0.90
-- Mortality_Rodents_Liver: 0.75
-- Mortality_Rodents_Multitissue: 0.97
-
+Em relação aos resultados da replicação, nomeadamente para descobrir que grupo de controlos foi utilizado, ainda não se chegou a nenhuma conclusão, visto que os valores de D variam imenso.
 
 ## 5. Bloqueado
 
+Descobrir que grupos de controlos foram utilizados no estudo. Descobrir que regime de rapamycin foi utilizado no estudo.
 
 ## 6. Decisões tomadas
 
-Entre as três intervenções da Rapamycin (Continuous, Start-Stop, Cycle) não se tinha a certeza de qual era utilizada na tabela do Zenodo. Sendo assim foi calculada a média de age dos ratinhos na tabela do ITP para comparar com a esperança média de vida, chegou-se à conclusão que o valor mais 
+Passar a calcular-se o D (D=obtained-expected) no script de replicação.
 
 ## 7. Plano para a próxima semana
 
-Confirmar que intervenções usar
-Remover rapamycin start-stop e continuous
-Corrigir código Rmd e .py
+Confirmar que regime de rapamycin usar
+Confirmar que grupos de controlos usar
