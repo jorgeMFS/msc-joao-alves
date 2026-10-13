@@ -11,7 +11,7 @@ library(stringr)
 ## #2 Import Data
 
 ```{r}
-data_annotation <- as.data.frame(read_excel(here("data","raw","Data_annotation_absolute_rodents.xlsx"),guess_max=21474836))
+data_annotation <- as.data.frame(read_excel(here("data","raw","Data_annotation_absolute_rodents.xlsx"),guess_max=21474835))
 
 sample_ids <- read.csv(here("results","table_zenodo_mpd_id.csv"), fileEncoding="latin1")
 ```
