@@ -8,33 +8,47 @@
 
 - **[Gladyshev-Lab]** (Metodologia) Retido: 
 
-**Expected_hazard.log10** não é o valor obtido através dos clocks. É o valor calculado através dos modelos de Gompertz. Ou seja, acaba por ser o valor expectado.
+**Ideia inical para obter os grupos de controlos**
+Como tivemos o problema dos grupos para calcular a mediana dos controlos não estar explícito, surgiu a ideia de calcular o valor D. Ou seja, os modelos são lineares    f(x)=b+w·x. Subtraindo a mediana (m) dos controlos de um grupo, dá f(x-m)=b+w·(x-m), que é igual a f(x-m)=f(x)-w·m. Mudando a referencia dos controlos não altera o declive, então todas as previsões são deslocadas por uma constante.
+
+Então para testar, o objetivo era calcular para cada amostra: D=obtained-expected, no caso D=previsao-Expected_Hazard.log10. Se os valores de D fossem iguais dentro de cada grupo, esse seria o grupo usado. Ordenando o D e fazendo um scatterplot daria para obter esses patamares, revelando os grupos.
+
+No entanto, **Expected_hazard.log10** não é o valor obtido através dos clocks, então não pode ser expected, porque não é calculado pelo f(x)=b+w·x mas sim pelo modelo de Gompertz. Acaba por ser o valor que devia ser o "objetivo" dos clocks.
 
 ## 2. Escrito
 
+- Foi escrito o código para gerar o `table_Zenodo`, `metadata_preprocessing`
 - Foi escrito o código da replicação do estudo (`tAge_replication.rmd`), nomeadamente
 
 ## 3. Executado
 
+- **Comando/notebook:** `experiments/preprocessing/metadata_preprocessing.rmd`
+- **Resultado:** Tabela pre-processada dos metadados
+- **Guardado em:** `results/tabela_Zenodo.csv` (eventualmente mudar o nome para um nome em inglês e standard em todos os scripts)
+
 - **Comando/notebook:** `experiments/replication/tAge_replication.rmd`
-- **Resultado:** valores de D muito dispersos
-- **Guardado em:** `replication/calculod.csv` e `replication/tAge_replication.Rmd`
+- **Resultado:** Valores de R próximos de 1. Valores preditos próximos dos expectados.
+- **Guardado em:** `replication/tAge_replication_results.csv`
 
 A versão do sklearn usada na replicação é 1.9.1
 
+O ficheiro `data_annotation_absolute_rodents.csv` usado foi o md5:c4f51562c38ab278dbb3b4b8fb7f64cc (importante distinguir, pois um ficheiro mais antigo continha alterações)
+
 ## 4. Números da semana
 
+Valores de R (Pearson) para mediana calculada com All_Controls para cada modelo:
 
+**Modelos**                       **R**
+*Mortality_Mouse_Multitissue*     0.90
+*Mortality_Rodents_Liver*         0.75
+*Mortality_Rodents_Multitissue*   0.97
 
 ## 5. Bloqueado
 
-Descobrir que grupos de controlos foram utilizados no estudo. Descobrir que regime de rapamycin foi utilizado no estudo.
-
 ## 6. Decisões tomadas
 
-Passar a calcular-se o D (D=obtained-expected) no script de replicação.
+Não se continuou com a ideia de calcular os valores D
+Utilizar todos os controlos para calcular a média.
+Para já, utilizar a Rapamycin Continuous (standby)
 
 ## 7. Plano para a próxima semana
-
-Confirmar que regime de rapamycin usar
-Confirmar que grupos de controlos usar
