@@ -13,9 +13,9 @@ MIF098; 240ppm,MIF098,MIF098,
 Captopril; 180ppm,Capt,Capt,
 L-Leucine; 40000ppm,Leu,Leu,
 PB125; 100ppm,PB125,PB125,
-Middle-aged Rapamycin;  14.7ppm & Acarbose; 1000ppm,RaAc,RaAc_16m,"Existem dois espaços entre "";  14.7ppm"""
-Rapamycin;  14.7ppm & Acarbose; 1000ppm,RaAc,RaAc_9m,
+Middle-aged Rapamycin;  14.7ppm & Acarbose; 1000ppm,RaAc_16,RaAc_16m,"Existem dois espaços entre "";  14.7ppm"""
+Rapamycin;  14.7ppm & Acarbose; 1000ppm,RaAc_9,RaAc_9m,
 Sulindac; 5ppm,Sul,Sul,
 Syringaresinol; 300ppm,Syr,Syr,
-Middle-aged 17-alpha-estradiol; 14.4ppm,17aE2_16m,17aE2_16m,
-Late-life 17-alpha-estradiol; 14.4ppm,17aE2_20m,17aE2_20m,
+Middle-aged 17-alpha-estradiol; 14.4ppm,17aE2_16,17aE2_16m,
+Late-life 17-alpha-estradiol; 14.4ppm,17aE2_20,17aE2_20m,
