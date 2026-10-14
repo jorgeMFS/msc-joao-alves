@@ -38,7 +38,7 @@ Do MPD (https://phenome.jax.org/projects/ITP1)
 - ITP_C2016_Lifespan.xlsx                             (14-10-2026)
 - ITP_C2017_Lifespan.xlsx                             (14-10-2026)
 
-Do Zenodo
+Do Zenodo Version v2 (https://zenodo.org/records/22166800)
 
 - Expression_data_absolute_rodents_Scaled.csv         (14-10-2026)
 - Data_annotation_absolute_rodents.xlsx               (14-10-2026)   md5:c4f51562c38ab278dbb3b4b8fb7f64cc
