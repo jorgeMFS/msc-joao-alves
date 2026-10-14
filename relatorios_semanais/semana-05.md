@@ -15,6 +15,8 @@ Então para testar, o objetivo era calcular para cada amostra: D=obtained-expect
 
 No entanto, **Expected_hazard.log10** não é o valor obtido através dos clocks, então não pode ser expected, porque não é calculado pelo f(x)=b+w·x mas sim pelo modelo de Gompertz. Acaba por ser o valor que devia ser o "objetivo" dos clocks.
 
+
+
 ## 2. Escrito
 
 - Foi escrito o código para gerar o `table_Zenodo`, `metadata_preprocessing`
@@ -37,11 +39,12 @@ O ficheiro `data_annotation_absolute_rodents.csv` usado foi o md5:c4f51562c38ab2
 ## 4. Números da semana
 
 Valores de R (Pearson) para mediana calculada com All_Controls para cada modelo:
+É calculada a correlação com todos os samples (n=161) ou com apenas os ratinhos mais velhos (n=150)
 
-**Modelos**                       **R**
-*Mortality_Mouse_Multitissue*     0.90
-*Mortality_Rodents_Liver*         0.75
-*Mortality_Rodents_Multitissue*   0.97
+**Modelos**                       **R(n=161)**     **R(n=150)**
+*Mortality_Mouse_Multitissue*     0.90             0.68
+*Mortality_Rodents_Liver*         0.75             0.32
+*Mortality_Rodents_Multitissue*   0.97             0.89
 
 ## 5. Bloqueado
 
