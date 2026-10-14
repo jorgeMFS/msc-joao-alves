@@ -145,12 +145,23 @@ group_name   <- "All_Controls"
 e_sub    <- eset_by_group[[group_name]]
 meta_sub <- Biobase::pData(e_sub)
 
+# Identify the 11 young control samples
+young_controls <- meta_sub$Intervention == "Control" &
+  meta_sub$Age.days < 660
+
+stopifnot(sum(young_controls, na.rm = TRUE) == 11)
+
 results_list <- list()
 
 for (model_name in models) {
-  model_path <- model_files[grepl(model_name, basename(model_files), fixed = TRUE)]
+  
+  model_path <- model_files[
+    grepl(model_name, basename(model_files), fixed = TRUE)
+  ]
+  
   if (length(model_path) != 1) {
-    warning(model_name, ": ", length(model_path), " matching files, skipped")
+    warning(model_name, ": ", length(model_path),
+            " matching files, skipped")
     next
   }
   
@@ -165,10 +176,33 @@ for (model_name in models) {
   pred_col  <- pred_cols[!grepl("_sd$", pred_cols)][1]
   
   stopifnot(all(colnames(e_sub) %in% rownames(pred)))
-  obtained   <- as.numeric(pred[colnames(e_sub), pred_col])
-  expected   <- center_controls(as.numeric(meta_sub[[expected_col]]),
-                                meta_sub, control_column, control_label)
+  
+  obtained <- as.numeric(pred[colnames(e_sub), pred_col])
+  
+  expected <- center_controls(
+    as.numeric(meta_sub[[expected_col]]),
+    meta_sub,
+    control_column,
+    control_label
+  )
+  
   difference <- obtained - expected
+  
+  # Pearson correlation using all 161 samples
+  r_161 <- cor(
+    obtained, expected,
+    use = "complete.obs",
+    method = "pearson"
+  )
+  
+  # Pearson correlation excluding the 11 young controls
+  keep <- !young_controls
+  
+  r_150 <- cor(
+    obtained[keep], expected[keep],
+    use = "complete.obs",
+    method = "pearson"
+  )
   
   block <- data.frame(
     Obtained            = obtained,
@@ -177,7 +211,8 @@ for (model_name in models) {
     Mean_Abs_Difference = NA_real_,
     Max_Abs_Difference  = NA_real_,
     SD_Difference       = NA_real_,
-    Pearson             = NA_real_,
+    Pearson_161         = NA_real_,
+    Pearson_150         = NA_real_,
     Spearman            = NA_real_,
     row.names           = colnames(e_sub)
   )
@@ -185,10 +220,18 @@ for (model_name in models) {
   block$Mean_Abs_Difference[1] <- mean(abs(difference), na.rm = TRUE)
   block$Max_Abs_Difference[1]  <- max(abs(difference), na.rm = TRUE)
   block$SD_Difference[1]       <- sd(difference, na.rm = TRUE)
-  block$Pearson[1]  <- cor(obtained, expected, use = "complete.obs", method = "pearson")
-  block$Spearman[1] <- cor(obtained, expected, use = "complete.obs", method = "spearman")
+  
+  block$Pearson_161[1] <- r_161
+  block$Pearson_150[1] <- r_150
+  
+  block$Spearman[1] <- cor(
+    obtained, expected,
+    use = "complete.obs",
+    method = "spearman"
+  )
   
   names(block) <- paste(model_name, names(block), sep = "__")
+  
   results_list[[paste(group_name, model_name, sep = "__")]] <- block
 }
 ```
@@ -230,25 +273,38 @@ write.csv(results_table,
 
 ```{r}
 plot_data <- do.call(rbind, lapply(names(aligned_blocks), function(key) {
-  parts <- strsplit(key, "__")[[1]]
+  
+  parts <- strsplit(key, "__", fixed = TRUE)[[1]]
+  block <- aligned_blocks[[key]]
+  
   data.frame(
     Control_Group = parts[1],
     Model    = parts[2],
     Sample   = rownames(metadata),
-    Obtained = aligned_blocks[[key]][[paste(key, "Obtained", sep = "__")]],
-    Expected = aligned_blocks[[key]][[paste(key, "Expected_Centered", sep = "__")]],
+    Obtained = block[[paste(parts[2], "Obtained", sep = "__")]],
+    Expected = block[[paste(parts[2], "Expected_Centered", sep = "__")]],
     Lab      = metadata$Lab
   )
 }))
 
-# Pearson r per panel, shown in the corner
 panel_stats <- do.call(rbind, lapply(
-  split(plot_data, list(plot_data$Control_Group, plot_data$Model), drop = TRUE),
+  split(plot_data, list(plot_data$Control_Group, plot_data$Model),
+        drop = TRUE),
   function(d) {
+    
+    young_controls <- metadata$Intervention == "Control" &
+      metadata$Age.days < 660
+    
+    keep <- !young_controls
+    
     data.frame(
       Control_Group = d$Control_Group[1],
       Model = d$Model[1],
-      label = sprintf("r = %.2f", cor(d$Obtained, d$Expected, use = "complete.obs"))
+      label = sprintf(
+        "R (n=161) = %.2f\nR (n=150) = %.2f",
+        cor(d$Obtained, d$Expected, use = "complete.obs"),
+        cor(d$Obtained[keep], d$Expected[keep], use = "complete.obs")
+      )
     )
   }
 ))
@@ -257,8 +313,10 @@ scatter_plot <- ggplot(plot_data, aes(x = Expected, y = Obtained, colour = Lab))
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey50") +
   geom_point(alpha = 0.7, size = 1.8, na.rm = TRUE) +
   geom_text(
-    data = panel_stats, aes(label = label),
-    x = -Inf, y = Inf, hjust = -0.1, vjust = 1.5,
+    data = panel_stats,
+    aes(label = label),
+    x = -Inf, y = Inf,
+    hjust = -0.1, vjust = 1.5,
     inherit.aes = FALSE, size = 3.5
   ) +
   facet_grid(Control_Group ~ Model) +
@@ -271,8 +329,10 @@ scatter_plot <- ggplot(plot_data, aes(x = Expected, y = Obtained, colour = Lab))
 
 scatter_plot
 
-ggsave(here("experiments","replication","tAge_scatterplots.png"),
-  scatter_plot, width = 14, height = 11, dpi = 300
+ggsave(
+  here("experiments", "replication", "tAge_scatterplots.png"),
+  scatter_plot,
+  width = 14, height = 11, dpi = 300
 )
 ```
 
