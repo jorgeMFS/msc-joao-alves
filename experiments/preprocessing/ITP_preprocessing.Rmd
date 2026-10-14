@@ -41,8 +41,6 @@ for (row in 1:nrow(itp_table)) {
 
 ```{r}
 itp_table$population = NULL
-itp_table$dose = NULL
-itp_table$age_initiation = NULL
 itp_table$dead = NULL
 itp_table$status = NULL
 ```
