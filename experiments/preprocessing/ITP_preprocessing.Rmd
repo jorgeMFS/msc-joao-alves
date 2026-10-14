@@ -1,0 +1,73 @@
+# Pre-processing of ITP Table
+
+## #1 Packages
+
+```{r}
+library(here)
+library(readxl)
+```
+
+## #2 Import Data
+
+```{r}
+ITP_C2015 <- as.data.frame(read_excel(here("data","raw","ITP_C2015_Lifespan.xlsx"), guess_max=21474836))
+
+ITP_C2016 <- as.data.frame(read_excel(here("data","raw","ITP_C2016_Lifespan.xlsx"), guess_max=21474836))
+
+ITP_C2017 <- as.data.frame(read_excel(here("data","raw","ITP_C2017_Lifespan.xlsx"), guess_max=21474836))
+
+sample_ids <- read.csv(here("results","table_zenodo_mpd_id.csv"), fileEncoding="latin1")
+```
+
+## #3 Join Tables
+
+```{r}
+itp_table <- rbind(ITP_C2015, ITP_C2016, ITP_C2017)
+```
+
+## #4 Add flag_censura Column
+
+```{r}
+for (row in 1:nrow(itp_table)) {
+  if (itp_table$status[row] == "dead") {
+    itp_table$flag_censura[row]=1
+  } else {
+    itp_table$flag_censura[row]=0
+  }
+}
+```
+
+## #5 Remove Unnecessary Columns
+
+```{r}
+itp_table$population = NULL
+itp_table$dose = NULL
+itp_table$age_initiation = NULL
+itp_table$dead = NULL
+itp_table$status = NULL
+```
+
+## #5 Change Compound Names
+
+```{r}
+interventions=intersect(sample_ids$mpd_id, itp_table$group)
+
+for (row in 1:nrow(itp_table)) {
+  if (itp_table$group[row] %in% interventions) {
+    itp_table$group[row]=
+      sample_ids$id[sample_ids$mpd_id==itp_table$group[row]]
+  }
+}
+```
+
+## #6 Remove Rapamycin (Not Continuous) Rows
+
+```{r}
+itp_table <- itp_table[!(itp_table$group %in% c("rapa_hi_cycle", "rapa_hi_start_stop")), ]
+```
+
+## #7 Export File
+
+```{r}
+write.csv(itp_table, here("results","table_ITP_Lifespan_Data.csv"), row.names = FALSE)
+```
