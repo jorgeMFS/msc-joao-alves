@@ -321,8 +321,8 @@ scatter_plot <- ggplot(plot_data, aes(x = Expected, y = Obtained, colour = Lab))
   ) +
   facet_grid(Control_Group ~ Model) +
   labs(
-    x = "Expected hazard (log10)",
-    y = "Obtained hazard (log10)",
+    x = "Expected Hazard (log10)",
+    y = "Obtained Hazard (log10)",
     title = "Obtained vs expected hazard by control group and model"
   ) +
   theme_bw()
