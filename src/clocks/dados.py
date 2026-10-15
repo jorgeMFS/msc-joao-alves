@@ -51,4 +51,4 @@ def construir_tabela_intervencoes(amostras, sobrevivencia, definicao="composto")
              hr_m, hr_f, e os respetivos erros padrão.
     Entregável da semana 1: results/intervencoes.csv
     """
-raise NotImplementedError("semana 1")
+    raise NotImplementedError("semana 1")

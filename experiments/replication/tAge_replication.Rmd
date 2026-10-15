@@ -1,23 +1,20 @@
 # tAge Replication
 
-## #1 Python and Directories
+## #1 Load Packages
 
 ```{r}
-dir_python=system("where python", intern=TRUE)
-
-Sys.setenv(
-  RETICULATE_PYTHON = utils::shortPathName(dir_python[1])
-)
-```
-
-## #2 Load Packages
-
-```{r}
+library(reticulate)
 library(tAge)
 library(Biobase)
 library(ggplot2)
 library(here)
 library(readxl)
+```
+
+## #2 Python and Directories
+
+```{r}
+reticulate::py_require(c("joblib", "pandas", "scikit-learn", "numpy"))
 ```
 
 ## #3 Import Data
@@ -33,29 +30,13 @@ expression=read.csv(here("data","raw","Expression_data_absolute_rodents_Scaled.c
 
 ### Metadata
 
-#### *Tabela só com ITPs*
+Tabela só com ITPs
 
 ```{r}
 metadata <- read.csv(here("results","table_Zenodo.csv"),
     row.names = 1,
     check.names = FALSE
 )
-```
-
-#### *Tabela completa*
-
-```{r}
-metadata <- as.data.frame(read_excel(here("data","raw","Data_annotation_absolute_rodents.xlsx"),
-  na = c("", "NA"), guess_max = 10000
-))
-
-rownames(metadata) <- as.character(metadata[[1]])
-```
-
-### Create New Column for Cohort_Lab
-
-```{r}
-metadata$Cohort_Lab <- paste(metadata$Cohort, metadata$Lab, sep = "_")
 ```
 
 ## #4 Common Samples
@@ -71,7 +52,6 @@ paste0(length(common)," samples in common")
 
 ```{r}
 expression <- expression[, common]
-
 metadata <- metadata[common, ]
 ```
 
@@ -94,91 +74,34 @@ gene_list <- tAge:::load_gene_list()
 e <- tAge:::.align_to_gene_list(eset, gene_list)
 ```
 
-### Division by Groups
-
-There will be 4 different groups to calculate the mean control value:
-
-- All 55 controls
-
-- By Cohort and Sex
-
-- By Lab
-
-- By Cohort and Lab
-
-### Subtract_by function
+### Subtract_controls function
 
 ```{r}
 control_column <- "Intervention"
 control_label  <- "Control"
 
-subtract_by <- function(eset, group_cols = NULL, control_col, control_lab) {
-  mat  <- Biobase::exprs(eset)
-  meta <- Biobase::pData(eset)
-  
-  is_control <- meta[[control_col]] %in% control_lab
-  group_id <- if (is.null(group_cols)) {
-    rep("all", ncol(mat))
-  } else {
-    do.call(paste, c(meta[group_cols], sep = "_"))
-  }
-  
-  out <- mat
-  has_controls <- rep(TRUE, ncol(mat))
-  
-  for (g in unique(group_id)) {
-    in_group   <- group_id == g
-    ctrl_group <- in_group & is_control
-    if (sum(ctrl_group) == 0) {
-      has_controls[in_group] <- FALSE
-      next
-    }
-    control_median <- apply(mat[, ctrl_group, drop = FALSE], 1, median, na.rm = TRUE)
-    out[, in_group] <- mat[, in_group, drop = FALSE] - control_median
-  }
-  
-  if (any(!has_controls)) {
-    message(sum(!has_controls), " samples dropped (no controls in their group)")
-  }
-  
-  Biobase::exprs(eset) <- out
-  eset[, has_controls]
+subtract_controls <- function(eset, control_col, control_lab) {
+  mat <- Biobase::exprs(eset)
+  is_control <- Biobase::pData(eset)[[control_col]] %in% control_lab
+  control_median <- apply(mat[, is_control, drop = FALSE], 1, median, na.rm = TRUE)
+  Biobase::exprs(eset) <- mat - control_median
+  eset
 }
 ```
 
-### Control Subtraction by groups
+### Control Subtraction
 
 ```{r}
-groups <- list(
-  All_Controls = NULL,
-  Cohort_Sex   = c("Cohort", "Sex"), # Esta linha acho que está "mal", poderia ser "Group"
-  Lab          = "Lab",
-  Cohort_Lab   = "Cohort_Lab"
-)
-
-eset_by_group <- lapply(groups, function(cols) {
-  subtract_by(e, cols, control_column, control_label)
-})
+eset_by_group <- list(All_Controls = subtract_controls(e, control_column, control_label))
+groups <- list(All_Controls = NULL)
 ```
 
 ### Subtract Controls from Expected_Hazard.log10
 
 ```{r}
-center_by <- function(values, meta, group_cols = NULL, control_col, control_lab) {
+center_controls <- function(values, meta, control_col, control_lab) {
   is_control <- meta[[control_col]] %in% control_lab
-  group_id <- if (is.null(group_cols)) {
-    rep("all", length(values))
-  } else {
-    do.call(paste, c(meta[group_cols], sep = "_"))
-  }
-  
-  out <- values
-  for (g in unique(group_id)) {
-    in_group <- group_id == g
-    control_median <- median(values[in_group & is_control], na.rm = TRUE)
-    out[in_group] <- values[in_group] - control_median
-  }
-  out
+  values - median(values[is_control], na.rm = TRUE)
 }
 ```
 
@@ -191,71 +114,125 @@ model_files <- list.files(model_dir, pattern = "\\.pkl$", full.names = TRUE)
 basename(model_files)
 ```
 
+### Confirm that the models are linear
+
+```{r}
+r <- rnorm(nrow(exprs(e)))
+
+e2 <- e
+exprs(e2) <- exprs(e) - r
+
+for (model_path in model_files) {
+  
+    p1 <- predict_tAge(list(scaled_diff=e),  list(scaled_diff=model_path), species="mouse", mode="EN")
+    p2 <- predict_tAge(list(scaled_diff=e2), list(scaled_diff=model_path), species="mouse", mode="EN")
+    
+    delta <- p1$scaled_diff_EN_tAge - p2$scaled_diff_EN_tAge
+    
+  cat(basename(model_path), ":", sd(delta), "\n")
+}
+```
+
 ## #8 Run the Models
 
 ```{r}
-references <- c(
-  Mortality_Rodents_Liver = "Expected_Hazard.log10",
-  Mortality_Mouse_Multitissue = "Expected_Hazard.log10",
-  Mortality_Rodents_Multitissue = "Expected_Hazard.log10"
-)
+models       <- c("Mortality_Rodents_Liver",
+                  "Mortality_Mouse_Multitissue",
+                  "Mortality_Rodents_Multitissue")
+expected_col <- "Expected_Hazard.log10"
+group_name   <- "All_Controls"
+
+e_sub    <- eset_by_group[[group_name]]
+meta_sub <- Biobase::pData(e_sub)
+
+# Identify the 11 young control samples
+young_controls <- meta_sub$Intervention == "Control" &
+  meta_sub$Age.days < 660
+
+stopifnot(sum(young_controls, na.rm = TRUE) == 11)
 
 results_list <- list()
 
-for (group_name in names(eset_by_group)) {
-  e_sub <- eset_by_group[[group_name]]
-  meta_sub <- Biobase::pData(e_sub)
+for (model_name in models) {
   
-  for (model_name in names(references)) {
-    model_path <- model_files[grepl(model_name, basename(model_files), fixed = TRUE)]
-    if (length(model_path) != 1) {
-      warning(model_name, ": ", length(model_path), " matching files, skipped")
-      next
-    }
-    
-    pred <- predict_tAge(
-      list(scaled_diff = e_sub),
-      list(scaled_diff = model_path),
-      species = "mouse",
-      mode ="EN"
-    )
-    
-    pred_cols <- setdiff(colnames(pred), colnames(meta_sub))
-    pred_col  <- pred_cols[!grepl("_sd$", pred_cols)][1]
-    
-    stopifnot(all(colnames(e_sub) %in% rownames(pred)))
-    obtained <- pred[colnames(e_sub), pred_col]
-    expected <- center_by(
-      as.numeric(meta_sub[[references[[model_name]]]]),
-      meta_sub,
-      groups[[group_name]],
-      control_column,
-      control_label
-    )
-    difference <- obtained - expected
-    
-    block <- data.frame(
-      Obtained   = obtained,
-      Expected_Centered = expected,
-      Difference = difference,
-      Mean_Abs_Difference = NA_real_,
-      Max_Abs_Difference  = NA_real_,
-      SD_Difference       = NA_real_,
-      Pearson  = NA_real_,
-      Spearman = NA_real_,
-      row.names = colnames(e_sub)
-    )
-    
-    # summary metrics: only the first row of each block
-    block$Mean_Abs_Difference[1] <- mean(abs(difference), na.rm = TRUE)
-    block$Max_Abs_Difference[1]  <- max(abs(difference), na.rm = TRUE)
-    block$SD_Difference[1]       <- sd(difference, na.rm = TRUE)
-    block$Pearson[1]  <- cor(obtained, expected, use = "complete.obs", method = "pearson")
-    block$Spearman[1] <- cor(obtained, expected, use = "complete.obs", method = "spearman")
-    
-    names(block) <- paste(group_name, model_name, names(block), sep = "__")
-    results_list[[paste(group_name, model_name, sep = "__")]] <- block
+  model_path <- model_files[
+    grepl(model_name, basename(model_files), fixed = TRUE)
+  ]
+  
+  if (length(model_path) != 1) {
+    warning(model_name, ": ", length(model_path),
+            " matching files, skipped")
+    next
   }
+  
+  pred <- predict_tAge(
+    list(scaled_diff = e_sub),
+    list(scaled_diff = model_path),
+    species = "mouse",
+    mode = "EN"
+  )
+  
+  pred_cols <- setdiff(colnames(pred), colnames(meta_sub))
+  pred_col  <- pred_cols[!grepl("_sd$", pred_cols)][1]
+  
+  stopifnot(all(colnames(e_sub) %in% rownames(pred)))
+  
+  obtained <- as.numeric(pred[colnames(e_sub), pred_col])
+  
+  expected <- center_controls(
+    as.numeric(meta_sub[[expected_col]]),
+    meta_sub,
+    control_column,
+    control_label
+  )
+  
+  difference <- obtained - expected
+  
+  # Pearson correlation using all 161 samples
+  r_161 <- cor(
+    obtained, expected,
+    use = "complete.obs",
+    method = "pearson"
+  )
+  
+  # Pearson correlation excluding the 11 young controls
+  keep <- !young_controls
+  
+  r_150 <- cor(
+    obtained[keep], expected[keep],
+    use = "complete.obs",
+    method = "pearson"
+  )
+  
+  block <- data.frame(
+    Obtained            = obtained,
+    Expected_Centered   = expected,
+    Difference          = difference,
+    Mean_Abs_Difference = NA_real_,
+    Max_Abs_Difference  = NA_real_,
+    SD_Difference       = NA_real_,
+    Pearson_161         = NA_real_,
+    Pearson_150         = NA_real_,
+    Spearman            = NA_real_,
+    row.names           = colnames(e_sub)
+  )
+  
+  block$Mean_Abs_Difference[1] <- mean(abs(difference), na.rm = TRUE)
+  block$Max_Abs_Difference[1]  <- max(abs(difference), na.rm = TRUE)
+  block$SD_Difference[1]       <- sd(difference, na.rm = TRUE)
+  
+  block$Pearson_161[1] <- r_161
+  block$Pearson_150[1] <- r_150
+  
+  block$Spearman[1] <- cor(
+    obtained, expected,
+    use = "complete.obs",
+    method = "spearman"
+  )
+  
+  names(block) <- paste(model_name, names(block), sep = "__")
+  
+  results_list[[paste(group_name, model_name, sep = "__")]] <- block
 }
 ```
 
@@ -268,21 +245,17 @@ aligned_blocks <- lapply(results_list, function(b) {
   out
 })
 
-expected_centered <- sapply(names(groups), function(g) {
-  center_by(
-    as.numeric(metadata[["Expected_Hazard.log10"]]),
-    metadata,
-    groups[[g]],
-    control_column,
-    control_label
-  )
-})
-colnames(expected_centered) <- paste0(names(groups), "__Expected_Hazard.log10_centered")
+expected_centered <- center_controls(
+  as.numeric(metadata[["Expected_Hazard.log10"]]),
+  metadata,
+  control_column,
+  control_label
+)
 
 results_table <- data.frame(
   Sample = rownames(metadata),
   metadata,
-  expected_centered,
+  Expected_Hazard.log10_centered = expected_centered,
   " " = NA,
   do.call(cbind, unname(aligned_blocks)),
   check.names = FALSE,
@@ -293,32 +266,45 @@ write.csv(results_table,
           here("experiments","replication","tAge_replication_results.csv"),
           na="",
           row.names= FALSE
-          )
+)
 ```
 
 ## #10 Graphs
 
 ```{r}
 plot_data <- do.call(rbind, lapply(names(aligned_blocks), function(key) {
-  parts <- strsplit(key, "__")[[1]]
+  
+  parts <- strsplit(key, "__", fixed = TRUE)[[1]]
+  block <- aligned_blocks[[key]]
+  
   data.frame(
     Control_Group = parts[1],
     Model    = parts[2],
     Sample   = rownames(metadata),
-    Obtained = aligned_blocks[[key]][[paste(key, "Obtained", sep = "__")]],
-    Expected = aligned_blocks[[key]][[paste(key, "Expected_Centered", sep = "__")]],
+    Obtained = block[[paste(parts[2], "Obtained", sep = "__")]],
+    Expected = block[[paste(parts[2], "Expected_Centered", sep = "__")]],
     Lab      = metadata$Lab
   )
 }))
 
-# Pearson r per panel, shown in the corner
 panel_stats <- do.call(rbind, lapply(
-  split(plot_data, list(plot_data$Control_Group, plot_data$Model), drop = TRUE),
+  split(plot_data, list(plot_data$Control_Group, plot_data$Model),
+        drop = TRUE),
   function(d) {
+    
+    young_controls <- metadata$Intervention == "Control" &
+      metadata$Age.days < 660
+    
+    keep <- !young_controls
+    
     data.frame(
       Control_Group = d$Control_Group[1],
       Model = d$Model[1],
-      label = sprintf("r = %.2f", cor(d$Obtained, d$Expected, use = "complete.obs"))
+      label = sprintf(
+        "R (n=161) = %.2f\nR (n=150) = %.2f",
+        cor(d$Obtained, d$Expected, use = "complete.obs"),
+        cor(d$Obtained[keep], d$Expected[keep], use = "complete.obs")
+      )
     )
   }
 ))
@@ -327,21 +313,38 @@ scatter_plot <- ggplot(plot_data, aes(x = Expected, y = Obtained, colour = Lab))
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey50") +
   geom_point(alpha = 0.7, size = 1.8, na.rm = TRUE) +
   geom_text(
-    data = panel_stats, aes(label = label),
-    x = -Inf, y = Inf, hjust = -0.1, vjust = 1.5,
+    data = panel_stats,
+    aes(label = label),
+    x = -Inf, y = Inf,
+    hjust = -0.1, vjust = 1.5,
     inherit.aes = FALSE, size = 3.5
   ) +
   facet_grid(Control_Group ~ Model) +
   labs(
-    x = "Expected hazard (log10)",
-    y = "Obtained hazard (log10)",
+    x = "Expected Hazard (log10)",
+    y = "Obtained Hazard (log10)",
     title = "Obtained vs expected hazard by control group and model"
   ) +
   theme_bw()
 
 scatter_plot
 
-ggsave(here("experiments","replication","tAge_scatterplots.png"),
-  scatter_plot, width = 14, height = 11, dpi = 300
+ggsave(
+  here("experiments", "replication", "tAge_scatterplots.png"),
+  scatter_plot,
+  width = 14, height = 11, dpi = 300
 )
+```
+
+## #11 Calculate Standard Deviation by Group
+
+As Expected_Hazard.log10 refer to the expected values (calculated from the Gompertz model), the standard deviation values from samples with the same sex, cohort, lab, age and intervention should be 0.
+
+```{r}
+groups_sd=paste(metadata$Cohort,metadata$Sex,metadata$Lab,metadata$Age.days,metadata$Intervention,sep="_")
+intermediate_table=data.frame(Expected_mortality.log10=metadata$Expected_Hazard.log10, groups_sd=groups_sd)
+rownames(intermediate_table)=rownames(metadata)
+
+v=tapply(intermediate_table$Expected_mortality.log10, intermediate_table$groups_sd, sd)
+summary(v)
 ```
