@@ -1,6 +1,6 @@
 # Semana 05 (2026-10-12 a 2026-10-18)
 
-**Horas dedicadas:** ~10 h · **Bloco do plano:** (ex.: 2-4, reproduzir valor publicado)
+**Horas dedicadas:** ~12 h · **Bloco do plano:** (ex.: 2-4, reproduzir valor publicado)
 
 ---
 
@@ -15,6 +15,25 @@ Então para testar, o objetivo era calcular para cada amostra: D=obtained-expect
 
 No entanto, **Expected_hazard.log10** não é o valor obtido através dos clocks, então não pode ser expected, porque não é calculado pelo f(x)=b+w·x mas sim pelo modelo de Gompertz. Acaba por ser o valor que devia ser o "objetivo" dos clocks.
 
+---
+
+**Kaplan-Meier**
+
+O método Kaplan-Meier estima a probabilidade de um animal sobreviver para além de determinado tempo.
+
+Imagina que acompanhas 100 ratinhos de controlo e 100 tratados com um fármaco. Alguns morrem durante o estudo, enquanto outros são retirados vivos ou chegam ao fim do acompanhamento sem que a sua morte seja observada.
+
+Kaplan–Meier utiliza os tempos de seguimento disponíveis para estimar a curva de sobrevivência de cada grupo, considerando corretamente os animais censurados.
+
+A mediana de sobrevivência é o tempo em que a curva estimada desce até 50%. Essa percentagem é referente à proporção de ratinhos que estaria viva nesse momento.
+
+*Vantagens*
+- Permite comparar longevidade entre tratados e controlos
+- Tem em conta os ratinhos censurados
+- É não paramétrico
+
+*Desvantagem*
+- Se por acaso os ratinhos do C2015 viverem mais tempo por alguma razão relacionada com as condições experimentais. Se os ratinhos tratados estão sobretudo no C2015 e os controlos sobretudo no C2016, podemos atribuir ao fármaco uma diferença que se deve ao cohort.
 
 ## 2. Escrito
 
@@ -23,13 +42,25 @@ No entanto, **Expected_hazard.log10** não é o valor obtido através dos clocks
 
 ## 3. Executado
 
+- **Comando/notebook:** `experiments/preprocessing/ITP_preprocessing.rmd`
+- - **Entrada:** `data/raw/ITP_C2015_Lifespan.xlsx`, `data/raw/ITP_C2016_Lifespan.xlsx`, `data/raw/ITP_C2017_Lifespan.xlsx` e `results/table_zenodo_mpd_id`
+- **Resultado:** Tabela pre-processada dos dados ITP provenientes do MPD
+- **Guardado em:** `results/table_ITP_Lifespan_Data.csv` 
+
 - **Comando/notebook:** `experiments/preprocessing/metadata_preprocessing.rmd`
+- **Entrada:** `data/raw/Data_annotation_absolute_rodents.xlsx` e `results/table_zenodo_mpd_id`
 - **Resultado:** Tabela pre-processada dos metadados
 - **Guardado em:** `results/tabela_Zenodo.csv` (eventualmente mudar o nome para um nome em inglês e standard em todos os scripts)
 
 - **Comando/notebook:** `experiments/replication/tAge_replication.rmd`
+- **Entrada:** `results/tabela_Zenodo.csv` e `results/table_ITP_Lifespan_Data.csv`
 - **Resultado:** Valores de R próximos de 1. Valores preditos próximos dos expectados.
 - **Guardado em:** `replication/tAge_replication_results.csv`
+
+- **Comando/notebook:** `experiments/interventions/intervention.rmd`
+- **Entrada:** `results/table_ITP_Lifespan_Data.csv`
+- **Resultado:** Tabela com Mediana (Kaplan-Meier) por cada sample e sexo
+- **Guardado em:** `interventions/`
   
 **Versões de ficheiros e packages** 
 Do MPD (https://phenome.jax.org/projects/ITP1)
@@ -57,6 +88,7 @@ Do Zenodo Version v2 (https://zenodo.org/records/22166800)
 - tAge       1.5.0
 - Biobase    2.72.0
 - ggplot2    4.0.3
+- survminer  0.5.2
 
 A versão do sklearn usada na replicação é 1.9.1
 
@@ -76,8 +108,9 @@ Valores de R (Pearson) para mediana calculada com All_Controls para cada modelo:
 
 ## 6. Decisões tomadas
 
-Não se continuou com a ideia de calcular os valores D
-Utilizar todos os controlos para calcular a média.
-Para já, utilizar a Rapamycin Continuous (standby)
+- Não se continuou com a ideia de calcular os valores D
+- Utilizar todos os controlos para calcular a média.
+- Para já, utilizar a Rapamycin Continuous (standby)
+- Para o interventions.csv, usar o Kaplan-Meier
 
 ## 7. Plano para a próxima semana
