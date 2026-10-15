@@ -1,4 +1,4 @@
-# Create interventions.csv
+# Create intervention_table.csv
 
 ## #1 Load Packages
 
@@ -31,23 +31,29 @@ treatment_list=unique(ITP$group)
 ```{r}
 kaplan_meier = survfit(Surv(age, flag_censura) ~ group + sex, data = ITP)
 
-kp = surv_median(kaplan_meier)
+km = surv_median(kaplan_meier)
 ```
 
-## #5 Create Table 
-
-### #5.1 Add Kaplan-Meier Median
+## #5 Create Table
 
 ```{r}
-interventions=data.frame()
+intervention_table=data.frame()
+```
 
-for (row in 1:nrow(kp)){
-  treatment = str_extract(kp$strata[row], "(?<=group=)[^,]+(?=,)")
-  sex = str_extract(kp$strata[row], "(?<=sex=)[^,]+(?=)")
+## #6 Kaplan-Meier
+
+### #6.1 Add Kaplan-Meier Median
+
+```{r}
+for (row in 1:nrow(km)){
+  
+  treatment = str_extract(km$strata[row], "(?<=group=)[^,]+(?=,)")
+  sex = str_extract(km$strata[row], "(?<=sex=)[^,]+(?=)")
   n = kaplan_meier$n[row]
-  median_value = kp$median[row]
-  interventions=rbind(
-    interventions,
+  median_value = km$median[row]
+  
+  intervention_table=rbind(
+    intervention_table,
     data.frame(
     Intervention = treatment,
     Sex = sex,
@@ -56,10 +62,65 @@ for (row in 1:nrow(kp)){
 }
 ```
 
-### #5.2 
+### #6.2 Add Variation (%)
 
 ```{r}
-cox = coxph(Surv(age, flag_censura) ~ group + sex, ITP)
+for (row in 1:nrow(km)){
+  
+  treatment = intervention_table$Intervention[row]
+  cohort = unique(ITP$cohort[ITP$group == treatment])
+  
+  if (cohort == "C2015") {
+    control = "Control_C2015" 
+  } else if (cohort == "C2016") {
+    control = "Control_C2016"
+  } else {
+    control = "Control_C2017"
+  }
+  
+  sex = intervention_table$Sex[row] 
+  
+  median_control = intervention_table$Median[intervention_table$Intervention == control & intervention_table$Sex == sex]
+  
+  variation = round((intervention_table$Median[row] / median_control) * 100, digits = 1)
+  intervention_table$Variation[row] = variation
+  
+}
+```
+
+## #7 Log Rank Test
+
+```{r}
+survdiff(Surv(age, flag_censura) ~ sex + group, data=ITP)
+```
+
+## #8 Cox 
+
+```{r}
+cox = coxph(Surv(age, flag_censura) ~ group + sex + cohort, ITP)
+
+for (row in 1:nrow(intervention_table)) {
+  
+  treatment = intervention_table$Intervention[row]
+  cohort = unique(ITP$cohort[ITP$group == treatment])
+  
+  if (cohort == "C2015") {
+    control = "Control_C2015" 
+  } else if (cohort == "C2016") {
+    control = "Control_C2016"
+  } else {
+    control = "Control_C2017"
+  }
+  
+  if
+}
+
 
 cox
+```
+
+```{r}
+for (ano in unique(ITP$cohort) {
+  cat(ano,":",unique)
+}
 ```
