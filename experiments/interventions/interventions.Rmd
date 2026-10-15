@@ -1,0 +1,65 @@
+# Create interventions.csv
+
+## #1 Load Packages
+
+```{r}
+library(here)
+library(survminer)
+library(stringr)
+library(survival)
+```
+
+## #2 Import Data
+
+```{r}
+ITP <- read.csv(here("results","table_ITP_Lifespan_Data.csv"))
+```
+
+```{r}
+ITP$sex[ITP$sex=="f"]="Female"
+ITP$sex[ITP$sex=="m"]="Male"
+```
+
+## #3 Intervention Groups
+
+```{r}
+treatment_list=unique(ITP$group)
+```
+
+## #4 Calculate Kaplan-Meier Median
+
+```{r}
+kaplan_meier = survfit(Surv(age, flag_censura) ~ group + sex, data = ITP)
+
+kp = surv_median(kaplan_meier)
+```
+
+## #5 Create Table 
+
+### #5.1 Add Kaplan-Meier Median
+
+```{r}
+interventions=data.frame()
+
+for (row in 1:nrow(kp)){
+  treatment = str_extract(kp$strata[row], "(?<=group=)[^,]+(?=,)")
+  sex = str_extract(kp$strata[row], "(?<=sex=)[^,]+(?=)")
+  n = kaplan_meier$n[row]
+  median_value = kp$median[row]
+  interventions=rbind(
+    interventions,
+    data.frame(
+    Intervention = treatment,
+    Sex = sex,
+    N = n,
+    Median = median_value))
+}
+```
+
+### #5.2 
+
+```{r}
+cox = coxph(Surv(age, flag_censura) ~ group + sex, ITP)
+
+cox
+```
