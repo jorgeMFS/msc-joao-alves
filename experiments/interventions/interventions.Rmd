@@ -48,7 +48,7 @@ intervention_table=data.frame()
 for (row in 1:nrow(km)){
   
   treatment = str_extract(km$strata[row], "(?<=group=)[^,]+(?=,)")
-  sex = str_extract(km$strata[row], "(?<=sex=)[^,]+(?=)")
+  sex = str_extract(km$strata[row], "(?<=sex=)[^, ]+")
   n = kaplan_meier$n[row]
   median_value = km$median[row]
   
@@ -91,17 +91,14 @@ for (row in 1:nrow(km)){
 ## #7 Log Rank Test
 
 ```{r}
-survdiff(Surv(age, flag_censura) ~ sex + group, data=ITP)
-```
+intervention_table$P_Value = NA_real_
 
-## #8 Cox 
-
-```{r}
-cox = coxph(Surv(age, flag_censura) ~ group + sex + cohort, ITP)
-
-for (row in 1:nrow(intervention_table)) {
+for (row in 1:nrow(km)){
   
   treatment = intervention_table$Intervention[row]
+  
+  if (grepl("^Control_", treatment)) next
+  
   cohort = unique(ITP$cohort[ITP$group == treatment])
   
   if (cohort == "C2015") {
@@ -112,15 +109,68 @@ for (row in 1:nrow(intervention_table)) {
     control = "Control_C2017"
   }
   
-  if
+  sex = intervention_table$Sex[row]
+  
+  df <- ITP[
+    ITP$group %in% c(control, treatment) &
+      ITP$cohort == cohort &
+      ITP$sex == sex,
+  ]
+  
+  lr = survdiff(
+    Surv(age, flag_censura) ~ group,
+    data = df
+  )
+  p = lr$pvalue
+  
+  intervention_table$P_Value[row] = p
 }
-
-
-cox
 ```
 
+## #8 Cox Proportional Hazard Model
+
 ```{r}
-for (ano in unique(ITP$cohort) {
-  cat(ano,":",unique)
+intervention_table$Hazard_Ratio = NA_real_
+
+for (row in 1:nrow(km)){
+  
+  treatment = intervention_table$Intervention[row]
+  
+  if (grepl("^Control_", treatment)) next
+  
+  cohort = unique(ITP$cohort[ITP$group == treatment])
+  
+  if (cohort == "C2015") {
+    control = "Control_C2015" 
+  } else if (cohort == "C2016") {
+    control = "Control_C2016"
+  } else {
+    control = "Control_C2017"
+  }
+  
+  sex = intervention_table$Sex[row]
+  
+  df <- ITP[
+    ITP$group %in% c(control, treatment) &
+      ITP$cohort == cohort &
+      ITP$sex == sex,
+  ]
+  
+  coxmodel = coxph(
+    Surv(age, flag_censura) ~ group,
+    data = df
+  )
+  
+  hr = exp(coxmodel$coefficients)
+  
+  intervention_table$Hazard_Ratio[row] = hr
 }
+```
+
+## #9 Export File
+
+```{r}
+write.csv(intervention_table,
+          here("experiments", "interventions", "interventions.csv"),
+          row.names = FALSE)
 ```
