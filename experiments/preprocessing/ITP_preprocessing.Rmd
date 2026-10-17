@@ -5,6 +5,7 @@
 ```{r}
 library(here)
 library(readxl)
+library(stringr)
 ```
 
 ## #2 Import Data
