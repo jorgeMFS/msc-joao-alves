@@ -118,7 +118,7 @@ for (row in 1:nrow(km)){
   ]
   
   lr = survdiff(
-    Surv(age, flag_censura) ~ group,
+    Surv(age, flag_censura) ~ group + strata(site),
     data = df
   )
   p = lr$pvalue
@@ -131,6 +131,8 @@ for (row in 1:nrow(km)){
 
 ```{r}
 intervention_table$Hazard_Ratio = NA_real_
+intervention_table$HR_CI95_Lower = NA_real_
+intervention_table$HR_CI95_Upper = NA_real_
 
 for (row in 1:nrow(km)){
   
@@ -156,14 +158,23 @@ for (row in 1:nrow(km)){
       ITP$sex == sex,
   ]
   
+  df$group = relevel( #Cox Model uses alphabetical order to choose the reference
+    factor(df$group),
+    ref = control
+  )
+  
   coxmodel = coxph(
-    Surv(age, flag_censura) ~ group,
+    Surv(age, flag_censura) ~ group + strata(site),
     data = df
   )
   
   hr = exp(coxmodel$coefficients)
   
+  CI95=summary(coxmodel)$conf.int[, c("lower .95", "upper .95")]
+  
   intervention_table$Hazard_Ratio[row] = hr
+  intervention_table$HR_CI95_Lower[row] = CI95[1]
+  intervention_table$HR_CI95_Upper[row] = CI95[2]
 }
 ```
 
