@@ -6,6 +6,7 @@ set.seed(123)
 
 ```{r}
 library(MASS)
+library(here)
 ```
 
 ## #2 Create Table
@@ -47,11 +48,13 @@ simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 0.3) {
   )
   
   #Add Noise to Data
-  noise = rnorm(20, mean = noise_mean, sd = noise_sd)
+  noise1 = rnorm(20, mean = noise_mean, sd = noise_sd)
+  noise2 = rnorm(20, mean = noise_mean, sd = noise_sd)
+  noise3 = rnorm(20, mean = noise_mean, sd = noise_sd)
   
-  effects[,1] = effects[,1] + noise
-  effects[,2] = effects[,2] + noise
-  effects[,3] = effects[,3] + noise
+  effects[,1] = effects[,1] + noise1
+  effects[,2] = effects[,2] + noise2
+  effects[,3] = effects[,3] + noise3
   
   return(effects)
 }
@@ -99,4 +102,10 @@ for (i in seq_along(target_corr_values)) {
 }
 
 results
+```
+
+## #7 Export File
+
+```{r}
+write.csv(results, here("results","potencia_results.csv"), row.names = FALSE)
 ```
