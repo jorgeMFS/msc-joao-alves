@@ -5,6 +5,7 @@
 ```{r}
 library(here)
 library(readxl)
+library(stringr)
 ```
 
 ## #2 Import Data
@@ -45,7 +46,9 @@ itp_table$dead = NULL
 itp_table$status = NULL
 ```
 
-## #5 Change Compound Names
+## #5 Change Interventions' Names
+
+### #5.1 Change Treatment Names
 
 ```{r}
 interventions=intersect(sample_ids$mpd_id, itp_table$group)
@@ -58,10 +61,14 @@ for (row in 1:nrow(itp_table)) {
 }
 ```
 
-## #6 Remove Rapamycin (Not Continuous) Rows
+### #5.2 Add Cohort to Controls
 
 ```{r}
-itp_table <- itp_table[!(itp_table$group %in% c("rapa_hi_cycle", "rapa_hi_start_stop")), ]
+for (row in 1:nrow(itp_table)) {
+  if (itp_table$group[row] == "Control") {
+    itp_table$group[row]=str_c("Control",itp_table$cohort[row],sep="_")
+  }
+}
 ```
 
 ## #7 Export File

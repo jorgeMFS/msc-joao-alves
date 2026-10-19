@@ -1,0 +1,187 @@
+# Create intervention_table.csv
+
+## #1 Load Packages
+
+```{r}
+library(here)
+library(survminer)
+library(stringr)
+library(survival)
+```
+
+## #2 Import Data
+
+```{r}
+ITP <- read.csv(here("results","table_ITP_Lifespan_Data.csv"))
+```
+
+```{r}
+ITP$sex[ITP$sex=="f"]="Female"
+ITP$sex[ITP$sex=="m"]="Male"
+```
+
+## #3 Intervention Groups
+
+```{r}
+treatment_list=unique(ITP$group)
+```
+
+## #4 Calculate Kaplan-Meier Median
+
+```{r}
+kaplan_meier = survfit(Surv(age, flag_censura) ~ group + sex, data = ITP)
+
+km = surv_median(kaplan_meier)
+```
+
+## #5 Create Table
+
+```{r}
+intervention_table=data.frame()
+```
+
+## #6 Kaplan-Meier
+
+### #6.1 Add Kaplan-Meier Median
+
+```{r}
+for (row in 1:nrow(km)){
+  
+  treatment = str_extract(km$strata[row], "(?<=group=)[^,]+(?=,)")
+  sex = str_extract(km$strata[row], "(?<=sex=)[^, ]+")
+  n = kaplan_meier$n[row]
+  median_value = km$median[row]
+  
+  intervention_table=rbind(
+    intervention_table,
+    data.frame(
+    Intervention = treatment,
+    Sex = sex,
+    N = n,
+    Median = median_value))
+}
+```
+
+### #6.2 Add Variation (%)
+
+```{r}
+for (row in 1:nrow(km)){
+  
+  treatment = intervention_table$Intervention[row]
+  cohort = unique(ITP$cohort[ITP$group == treatment])
+  
+  if (cohort == "C2015") {
+    control = "Control_C2015" 
+  } else if (cohort == "C2016") {
+    control = "Control_C2016"
+  } else {
+    control = "Control_C2017"
+  }
+  
+  sex = intervention_table$Sex[row] 
+  
+  median_control = intervention_table$Median[intervention_table$Intervention == control & intervention_table$Sex == sex]
+  
+  variation = round((intervention_table$Median[row] / median_control) * 100, digits = 1)
+  intervention_table$Variation[row] = variation
+  
+}
+```
+
+## #7 Log Rank Test
+
+```{r}
+intervention_table$P_Value = NA_real_
+
+for (row in 1:nrow(km)){
+  
+  treatment = intervention_table$Intervention[row]
+  
+  if (grepl("^Control_", treatment)) next
+  
+  cohort = unique(ITP$cohort[ITP$group == treatment])
+  
+  if (cohort == "C2015") {
+    control = "Control_C2015" 
+  } else if (cohort == "C2016") {
+    control = "Control_C2016"
+  } else {
+    control = "Control_C2017"
+  }
+  
+  sex = intervention_table$Sex[row]
+  
+  df <- ITP[
+    ITP$group %in% c(control, treatment) &
+      ITP$cohort == cohort &
+      ITP$sex == sex,
+  ]
+  
+  lr = survdiff(
+    Surv(age, flag_censura) ~ group + strata(site),
+    data = df
+  )
+  p = lr$pvalue
+  
+  intervention_table$P_Value[row] = p
+}
+```
+
+## #8 Cox Proportional Hazard Model
+
+```{r}
+intervention_table$Hazard_Ratio = NA_real_
+intervention_table$HR_CI95_Lower = NA_real_
+intervention_table$HR_CI95_Upper = NA_real_
+
+for (row in 1:nrow(km)){
+  
+  treatment = intervention_table$Intervention[row]
+  
+  if (grepl("^Control_", treatment)) next
+  
+  cohort = unique(ITP$cohort[ITP$group == treatment])
+  
+  if (cohort == "C2015") {
+    control = "Control_C2015" 
+  } else if (cohort == "C2016") {
+    control = "Control_C2016"
+  } else {
+    control = "Control_C2017"
+  }
+  
+  sex = intervention_table$Sex[row]
+  
+  df <- ITP[
+    ITP$group %in% c(control, treatment) &
+      ITP$cohort == cohort &
+      ITP$sex == sex,
+  ]
+  
+  df$group = relevel( #Cox Model uses alphabetical order to choose the reference
+    factor(df$group),
+    ref = control
+  )
+  
+  coxmodel = coxph(
+    Surv(age, flag_censura) ~ group + strata(site),
+    data = df
+  )
+  
+  hr = exp(coxmodel$coefficients)
+  
+  CI95=summary(coxmodel)$conf.int[, c("lower .95", "upper .95")]
+  
+  intervention_table$Hazard_Ratio[row] = hr
+  intervention_table$HR_CI95_Lower[row] = CI95[1]
+  intervention_table$HR_CI95_Upper[row] = CI95[2]
+}
+```
+
+## #9 Export File
+
+```{r}
+write.csv(intervention_table,
+          here("experiments", "interventions", "interventions.csv"),
+          row.names = FALSE)
+```
