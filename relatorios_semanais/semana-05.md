@@ -53,9 +53,9 @@ Ou seja, enquanto o
 
 ## 3. Executado
 
-- **Comando/notebook:** `experiments/protencia/potencia.rmd`
+- **Comando/notebook:** `experiments/potencia/potencia.rmd`
 - **Resultado:** Tabela de dados simulada com media dos ΔR
-- **Guardado em:** `experiments/protencia/potencia.rmd` 
+- **Guardado em:** `results/potencia_results.csv` 
 
 - **Comando/notebook:** `experiments/preprocessing/ITP_preprocessing.rmd`
 - **Entrada:** `data/raw/ITP_C2015_Lifespan.xlsx`, `data/raw/ITP_C2016_Lifespan.xlsx`, `data/raw/ITP_C2017_Lifespan.xlsx` e `results/table_zenodo_mpd_id`
