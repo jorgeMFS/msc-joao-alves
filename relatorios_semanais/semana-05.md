@@ -35,15 +35,30 @@ A mediana de sobrevivência é o tempo em que a curva estimada desce até 50%. E
 *Desvantagem*
 - Se por acaso os ratinhos do C2015 viverem mais tempo por alguma razão relacionada com as condições experimentais. Se os ratinhos tratados estão sobretudo no C2015 e os controlos sobretudo no C2016, podemos atribuir ao fármaco uma diferença que se deve ao cohort.
 
+**Cox Proportional Hazard Regression**
+
+O modelo de Cox, tenta perceber quanto é que as váriaveis (sexo, fármaco, cohort) estão associadas ao hazard (probabilidade do ratinho morrer)
+
+Dão uma tabela com as variáveis escolhidas e coeficientes, em que valores próximos de 0 têm pouca ou nenhuma associação ao hazard, valores positivos ou negativos estão positiva- ou negativamente associados. O exp(coeficiente) é parecido mas é mais interpretável, e em vez de 0 ser o valor com pouca associação, é o 1.
+
+No fundo, o Kaplan-Meier dá informação em cada grupo (Sex_Intervention) sobre a probabilidade de um ratinho desse grupo sobreviver além do tempo t., enquanto Cox dá informação sobre se as variáveis estão associadas ou não ao hazard.
+
+Ou seja, enquanto o 
+
 ## 2. Escrito
 
 - Foi escrito o código para gerar o `table_Zenodo`, `metadata_preprocessing`
 - Foi escrito o código da replicação do estudo (`tAge_replication.rmd`), nomeadamente usar apenas o All_Controls para calcular a mediana dos controlos, e gerar os valores de R (Pearson) para a mortalidade com e sem os ratinhos jovens.
+- Código `potencia.rmd` em que se cria dados fictícios para 20 fármacos diferentes, com efeito real (Lifespan_Effect), efeitos preditos pelos modelos cronológicos e de mortalidade (Chronological_Effect e Mortality_Effect), através de diferentes valores decorrelções entre os modelos e os valores reais. O resultado são médias de ΔR (R(cronológico - mortalidade), utilizando a correlação de Pearson.
 
 ## 3. Executado
 
+- **Comando/notebook:** `experiments/protencia/potencia.rmd`
+- **Resultado:** Tabela de dados simulada com media dos ΔR
+- **Guardado em:** `results/table_ITP_Lifespan_Data.csv` 
+
 - **Comando/notebook:** `experiments/preprocessing/ITP_preprocessing.rmd`
-- - **Entrada:** `data/raw/ITP_C2015_Lifespan.xlsx`, `data/raw/ITP_C2016_Lifespan.xlsx`, `data/raw/ITP_C2017_Lifespan.xlsx` e `results/table_zenodo_mpd_id`
+- **Entrada:** `data/raw/ITP_C2015_Lifespan.xlsx`, `data/raw/ITP_C2016_Lifespan.xlsx`, `data/raw/ITP_C2017_Lifespan.xlsx` e `results/table_zenodo_mpd_id`
 - **Resultado:** Tabela pre-processada dos dados ITP provenientes do MPD
 - **Guardado em:** `results/table_ITP_Lifespan_Data.csv` 
 
@@ -59,8 +74,8 @@ A mediana de sobrevivência é o tempo em que a curva estimada desce até 50%. E
 
 - **Comando/notebook:** `experiments/interventions/intervention.rmd`
 - **Entrada:** `results/table_ITP_Lifespan_Data.csv`
-- **Resultado:** Tabela com Mediana (Kaplan-Meier) por cada sample e sexo
-- **Guardado em:** `interventions/`
+- **Resultado:** Tabela com Mediana (Kaplan-Meier) , P-Value (Log Rank Test), Hazard Ratios e IC 95% (Cox Model): `interventions/interventions.csv`
+- **Guardado em:** `interventions/interventions.rmd`
   
 **Versões de ficheiros e packages** 
 Do MPD (https://phenome.jax.org/projects/ITP1)
