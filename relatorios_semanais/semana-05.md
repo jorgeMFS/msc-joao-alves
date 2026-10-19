@@ -49,13 +49,13 @@ Ou seja, enquanto o
 
 - Foi escrito o código para gerar o `table_Zenodo`, `metadata_preprocessing`
 - Foi escrito o código da replicação do estudo (`tAge_replication.rmd`), nomeadamente usar apenas o All_Controls para calcular a mediana dos controlos, e gerar os valores de R (Pearson) para a mortalidade com e sem os ratinhos jovens.
-- Código `potencia.rmd` em que se cria dados fictícios para 20 fármacos diferentes, com efeito real (Lifespan_Effect), efeitos preditos pelos modelos cronológicos e de mortalidade (Chronological_Effect e Mortality_Effect), através de diferentes valores decorrelções entre os modelos e os valores reais. O resultado são médias de ΔR (R(cronológico - mortalidade), utilizando a correlação de Pearson.
+- Código `potencia.rmd` em que se cria dados fictícios para 20 fármacos diferentes, com efeito real (Lifespan_Effect), efeitos preditos pelos modelos cronológicos e de mortalidade (Chronological_Effect e Mortality_Effect), através de diferentes valores decorrelções entre os modelos e os valores reais. O resultado são médias de ΔR (R(mortalidade - cronologico), utilizando a correlação de Pearson.
 
 ## 3. Executado
 
 - **Comando/notebook:** `experiments/protencia/potencia.rmd`
 - **Resultado:** Tabela de dados simulada com media dos ΔR
-- **Guardado em:** `results/table_ITP_Lifespan_Data.csv` 
+- **Guardado em:** `experiments/protencia/potencia.rmd` 
 
 - **Comando/notebook:** `experiments/preprocessing/ITP_preprocessing.rmd`
 - **Entrada:** `data/raw/ITP_C2015_Lifespan.xlsx`, `data/raw/ITP_C2016_Lifespan.xlsx`, `data/raw/ITP_C2017_Lifespan.xlsx` e `results/table_zenodo_mpd_id`
