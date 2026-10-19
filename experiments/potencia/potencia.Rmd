@@ -1,0 +1,134 @@
+## #1 Load Packages
+
+```{r}
+set.seed(123)
+```
+
+```{r}
+library(MASS)
+```
+
+## #2 Create Table
+
+```{r}
+potencia <- data.frame(Intervention = character(20),
+                       Lifespan_Effect = numeric(20),
+                       Chronological_Effect = numeric (20),
+                       Mortality_Effect = numeric (20))
+```
+
+## #3 Create Intervention Column
+
+```{r}
+for (row in 1:20) {
+  potencia$Intervention[row] = paste0("Drug_", row)
+}
+```
+
+## #4 Create Simulated Effect Data
+
+```{r}
+simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 1) {
+
+  cor_matrix <- matrix(
+    c(
+      1,   target_corr, target_corr,
+      target_corr, 1,   0.7,
+      target_corr, 0.7, 1
+    ),
+    nrow = 3,
+    byrow = TRUE
+  )
+  
+  effects <- MASS::mvrnorm(
+    n = 20,
+    mu = c(0, 0, 0),
+    Sigma = cor_matrix
+  )
+  
+  #Add Noise to Lifespan_Effect
+  noise = rnorm(20, mean = noise_mean, sd = noise_sd)
+  
+  effects[,1] = effects[,1] + noise
+  return(effects)
+}
+```
+
+## #5 Try Different Correlations
+
+```{r}
+simulation = function() {
+  for (corr in c(0, 0.3, 0.6, 0.9)) {
+    effects = simulated_data(corr)
+    
+    df=potencia
+    
+    df$Lifespan_Effect = effects[,1]
+    df$Chronological_Effect = effects[,2]
+    df$Mortality_Effect = effects[,3]
+  }
+  return(df)
+}
+```
+
+## #6 Calculate Correlations
+
+```{r}
+corr <- function(df, met="pearson") {
+  
+  corr_c = cor(df$Lifespan_Effect, df$Chronological_Effect, method = met)
+  corr_m = cor(df$Lifespan_Effect, df$Mortality_Effect, method = met)
+  
+  delta_corr = corr_m - corr_c
+  
+  return (delta_corr)
+}
+```
+
+## #7 Simulate 1000 Times
+
+### #7.1 Global Mean
+
+```{r}
+avg_delta_corr = vector()
+
+for (n in 1:1000) {
+  delta_corr = corr(simulation())
+  avg_delta_corr = append(avg_delta_corr, delta_corr)
+}
+
+mean(avg_delta_corr)
+```
+
+### #7.2 Mean by target_corr
+
+```{r}
+target_corr_values <- c(0, 0.3, 0.6, 0.9)
+
+avg_delta_corr <- numeric(length(target_corr_values))
+
+for (i in seq_along(target_corr_values)) {
+  target_corr <- target_corr_values[i]
+  delta_corr_values <- numeric(1000)
+  
+  for (n in 1:1000) {
+    df <- potencia
+    effects <- simulated_data(target_corr)
+    
+    df$Lifespan_Effect <- effects[, 1]
+    df$Chronological_Effect <- effects[, 2]
+    df$Mortality_Effect <- effects[, 3]
+    
+    delta_corr_values[n] <- corr(df)
+  }
+  
+  avg_delta_corr[i] <- mean(delta_corr_values)
+}
+
+results <- data.frame(
+  target_corr = target_corr_values,
+  Mean_DeltaR = avg_delta_corr
+)
+
+results
+```
