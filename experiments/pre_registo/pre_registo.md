@@ -1,5 +1,8 @@
 **Treatments to be tested**
 
+As there are many interventions with minor changes (e.g. rapamycin regimes or diet), each group will only count as a single family. Following this step, this will result in 56 families (with control).
+If interventions containing multiple drugs or regimes (e.g. Ercc1 + CR) have to be removed, it will result in 41 families.
+
 *ITP Samples Compounds* (20)
 -17aE2_16m
 -17aE2_20m
