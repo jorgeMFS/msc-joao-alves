@@ -14,8 +14,8 @@ library(here)
 ## #3 Choose Scenarios
 
 ```{r}
-nint_values = c(56, 70)
-names(nint_values) = c("Scenario 1", "Scenario 2")
+nint_values = c(20, 41, 56)
+names(nint_values) = c("Default", "Worst Case Scenario", "Best Case Scenario")
 ```
 
 ## #4 Simulated Effect Data Function
