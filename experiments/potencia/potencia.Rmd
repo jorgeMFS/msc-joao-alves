@@ -1,38 +1,24 @@
-## #1 Load Packages
+## #1 Set Seed
 
 ```{r}
 set.seed(123)
 ```
+
+## #2 Load Packages
 
 ```{r}
 library(MASS)
 library(here)
 ```
 
-## #2 Create Table
-
-### #2.1 Number of Interventions
+## #3 Choose Scenarios
 
 ```{r}
-nint = 70
+nint_values = c(56, 70)
+names(nint_values) = c("Scenario 1", "Scenario 2")
 ```
 
-```{r}
-potencia <- data.frame(Intervention = character(nint),
-                       Lifespan_Effect = numeric(nint),
-                       Chronological_Effect = numeric (nint),
-                       Mortality_Effect = numeric (nint))
-```
-
-## #3 Create Intervention Column
-
-```{r}
-for (row in 1:nint) {
-  potencia$Intervention[row] = paste0("Drug_", row)
-}
-```
-
-## #4 Create Simulated Effect Data
+## #4 Simulated Effect Data Function
 
 ```{r}
 simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 0.3) {
@@ -66,7 +52,7 @@ simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 0.3) {
 }
 ```
 
-## #5 Calculate Correlations
+## #5 Correlation Function
 
 ```{r}
 corr <- function(df, met="pearson") {
@@ -82,29 +68,41 @@ corr <- function(df, met="pearson") {
 
 ## #6 Simulate 1000 Times
 
-### #6.1 Mean by target_corr
-
 ```{r}
 target_corr_values <- c(0, 0.3, 0.6, 0.9)
 
-results <- data.frame(
-  target_corr = target_corr_values,
-  Mean_DeltaR = numeric(4),
-  Percentile_Range = numeric(4)
-)
+results <- data.frame()
 
-for (i in seq_along(target_corr_values)) {
-  delta_corr_values <- replicate(1000, {
-    effects <- simulated_data(target_corr_values[i])
-    df <- potencia
-    df[, 2:4] <- effects
-    corr(df)
-  })
+for (scenario in names(nint_values)) {
   
-  results$Mean_DeltaR[i] <- mean(delta_corr_values)
-  results$Percentile_Range[i] <-
-    quantile(delta_corr_values, 0.975) -
-    quantile(delta_corr_values, 0.025)
+  nint <- nint_values[scenario]
+  
+  potencia <- data.frame(
+    Intervention = paste0("Drug_", 1:nint),
+    Lifespan_Effect = numeric(nint),
+    Chronological_Effect = numeric(nint),
+    Mortality_Effect = numeric(nint)
+  )
+  
+  for (target in target_corr_values) {
+    
+    delta_corr_values <- replicate(1000, {
+      effects <- simulated_data(target)
+      df <- potencia
+      df[, 2:4] <- effects
+      corr(df)
+    })
+    
+    results <- rbind(results, data.frame(
+      Scenario = scenario,
+      nint = nint,
+      target_corr = target,
+      Mean_DeltaR = mean(delta_corr_values),
+      Percentile_Range =
+        quantile(delta_corr_values, 0.975) -
+        quantile(delta_corr_values, 0.025)
+    ))
+  }
 }
 
 results
