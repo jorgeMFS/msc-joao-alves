@@ -1,4 +1,4 @@
-# Semana 056 (2026-10-19 a 2026-10-25)
+# Semana 06 (2026-10-19 a 2026-10-25)
 
 **Horas dedicadas:** ~12 h · **Bloco do plano:** (ex.: 2-4, reproduzir valor publicado)
 
@@ -24,7 +24,7 @@ Os padrões moleculares do envelhecimento são parcialmente comuns entre órgão
 ## 3. Executado
 
 - **Comando/notebook:** `experiments/potencia/potencia.Rmd`
-- **Resultado:** Tabela de dados simulada com media dos ΔR para 56 e 70 samples
+- **Resultado:** Tabela de dados simulada com media dos ΔR para 20, 41 e 56 samples
 - **Guardado em:** `results/potencia_results.csv` 
 
 - **Comando/notebook:** `experiments/preprocessing/etadata_preprocessing_full.Rmd`
@@ -46,5 +46,8 @@ Valores de R (Pearson) para mediana calculada com All_Controls para cada modelo:
 ## 5. Bloqueado
 
 ## 6. Decisões tomadas
+
+As there are many interventions with minor changes (e.g. rapamycin regimes or diet), each group will only count as a single family. Following this step, this will result in 56 families (with control).
+If interventions containing multiple regimes (e.g. Ercc1 + CR) have to be joined with its components, it will result in 41 families.
 
 ## 7. Plano para a próxima semana
