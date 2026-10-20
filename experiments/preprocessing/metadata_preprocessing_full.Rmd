@@ -1,0 +1,59 @@
+# Pre-processing of Metadata
+
+## #1 Packages
+
+```{r}
+library(here)
+library(readxl)
+library(stringr)
+```
+
+## #2 Import Data
+
+```{r}
+data_annotation <- as.data.frame(read_excel(here("data","raw","Data_annotation_absolute_rodents.xlsx"),guess_max=21474835))
+
+sample_ids <- read.csv(here("results","table_zenodo_mpd_id.csv"), fileEncoding="latin1")
+```
+
+## #3 Add Cohort and Lab Columns
+
+```{r}
+n_cols <- ncol(data_annotation)
+
+cohort <- ifelse(
+  grepl("NewITP", data_annotation[[1]]),
+  str_split_i(data_annotation[[1]], "_", 5),
+  NA
+)
+
+labs <- ifelse(
+  grepl("NewITP", data_annotation[[1]]),
+  str_split_i(data_annotation[[1]], "_", 6),
+  NA
+)
+
+data_annotation$Cohort <- cohort
+data_annotation$Lab <- labs
+
+data_annotation <- data_annotation[, c(1, n_cols + 1, n_cols + 2, 2:n_cols)]
+```
+
+## #5 Change Compound Names
+
+```{r}
+interventions=intersect(sample_ids$zenodo_id,data_annotation$Intervention)
+
+for (row in 1:nrow(data_annotation)) {
+  if (data_annotation$Intervention[row] %in% interventions) {
+    data_annotation$Intervention[row]=
+      sample_ids$id[sample_ids$zenodo_id==data_annotation$Intervention[row]]
+  } 
+}
+```
+
+## #6 Export File as .csv
+
+```{r}
+write.csv(data_annotation, here("results","table_Zenodo_full.csv"), row.names = FALSE)
+```
