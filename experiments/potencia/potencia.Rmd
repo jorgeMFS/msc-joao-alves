@@ -11,17 +11,23 @@ library(here)
 
 ## #2 Create Table
 
+### #2.1 Number of Interventions
+
 ```{r}
-potencia <- data.frame(Intervention = character(20),
-                       Lifespan_Effect = numeric(20),
-                       Chronological_Effect = numeric (20),
-                       Mortality_Effect = numeric (20))
+nint = 70
+```
+
+```{r}
+potencia <- data.frame(Intervention = character(nint),
+                       Lifespan_Effect = numeric(nint),
+                       Chronological_Effect = numeric (nint),
+                       Mortality_Effect = numeric (nint))
 ```
 
 ## #3 Create Intervention Column
 
 ```{r}
-for (row in 1:20) {
+for (row in 1:nint) {
   potencia$Intervention[row] = paste0("Drug_", row)
 }
 ```
@@ -42,15 +48,15 @@ simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 0.3) {
   )
   
   effects <- MASS::mvrnorm(
-    n = 20,
+    n = nint,
     mu = c(0, 0, 0),
     Sigma = cor_matrix
   )
   
   #Add Noise to Data
-  noise1 = rnorm(20, mean = noise_mean, sd = noise_sd)
-  noise2 = rnorm(20, mean = noise_mean, sd = noise_sd)
-  noise3 = rnorm(20, mean = noise_mean, sd = noise_sd)
+  noise1 = rnorm(nint, mean = noise_mean, sd = noise_sd)
+  noise2 = rnorm(nint, mean = noise_mean, sd = noise_sd)
+  noise3 = rnorm(nint, mean = noise_mean, sd = noise_sd)
   
   effects[,1] = effects[,1] + noise1
   effects[,2] = effects[,2] + noise2
