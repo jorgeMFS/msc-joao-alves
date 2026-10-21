@@ -24,7 +24,7 @@ Os padrões moleculares do envelhecimento são parcialmente comuns entre órgão
 ## 3. Executado
 
 - **Comando/notebook:** `experiments/potencia/potencia.Rmd`
-- **Resultado:** Tabela de dados simulada com media dos ΔR para 20, 41 e 56 samples
+- **Resultado:** Tabela de dados simulada com media dos ΔR para 20, 41 e 56 interventions
 - **Guardado em:** `results/potencia_results.csv` 
 
 - **Comando/notebook:** `experiments/preprocessing/etadata_preprocessing_full.Rmd`
@@ -37,11 +37,12 @@ Os padrões moleculares do envelhecimento são parcialmente comuns entre órgão
 Valores de R (Pearson) para mediana calculada com All_Controls para cada modelo:
 É calculada a correlação com todos os samples (n=161) ou com apenas os ratinhos mais velhos (n=150)
 
-**Correlation between Model and Real Effect**               **ΔR(n=56)**     **ΔR(n=70)**
-0                                                           0.441296016      0.393452366
-0.3                                                         0.424493475      0.387757894
-0.6                                                         0.366428735      0.315521162
-0.9                                                         0.215361245      0.18372214
+**Correlation between Model and Real Effect**             **ΔR(n=20)**      **ΔR(n=41)**      **ΔR(n=56)**
+
+0                                                          0.783169          0.527381          0.461194
+0.3                                                        0.741868          0.506527          0.471088
+0.6                                                        0.628226          0.419577          0.353729
+0.9                                                        0.402218          0.250039          0.219747
 
 ## 5. Bloqueado
 
