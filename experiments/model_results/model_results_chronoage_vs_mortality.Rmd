@@ -1,0 +1,238 @@
+# tAge Replication
+
+## #1 Load Packages
+
+```{r}
+library(reticulate)
+library(tAge)
+library(Biobase)
+library(ggplot2)
+library(here)
+library(readxl)
+```
+
+## #2 Python and Directories
+
+```{r}
+reticulate::py_require(c("joblib", "pandas", "scikit-learn", "numpy"))
+```
+
+## #3 Import Data
+
+### Expression
+
+```{r}
+expression=read.csv(here("data","raw","Expression_data_absolute_rodents_Scaled.csv"),
+  row.names = 1,
+  check.names = FALSE
+)
+```
+
+### Metadata
+
+Tabela só com ITPs
+
+```{r}
+metadata <- read.csv(here("results","table_Zenodo.csv"),
+    row.names = 1,
+    check.names = FALSE
+)
+```
+
+## #4 Common Samples
+
+### Select Common Samples
+
+```{r}
+common = intersect(colnames(expression),rownames(metadata))
+paste0(length(common)," samples in common")
+```
+
+### Discard Different Samples
+
+```{r}
+expression <- expression[, common]
+metadata <- metadata[common, ]
+```
+
+## #5 Create Expression Set
+
+```{r}
+eset = make_ExpressionSet(
+  expression,
+  metadata
+)
+```
+
+## #6 Gene alignment and subtracting control values
+
+### Gene Alignment
+
+```{r}
+gene_list <- tAge:::load_gene_list()
+
+e <- tAge:::.align_to_gene_list(eset, gene_list)
+```
+
+### Subtract_controls function
+
+```{r}
+control_column <- "Intervention"
+control_label  <- "Control"
+
+subtract_controls <- function(eset, control_col, control_lab) {
+  mat <- Biobase::exprs(eset)
+  is_control <- Biobase::pData(eset)[[control_col]] %in% control_lab
+  control_median <- apply(mat[, is_control, drop = FALSE], 1, median, na.rm = TRUE)
+  Biobase::exprs(eset) <- mat - control_median
+  eset
+}
+```
+
+### Control Subtraction
+
+```{r}
+eset_by_group <- list(All_Controls = subtract_controls(e, control_column, control_label))
+groups <- list(All_Controls = NULL)
+```
+
+### Subtract Controls
+
+#### Mortality
+
+```{r}
+center_controls <- function(values, meta, control_col, control_lab) {
+  is_control <- meta[[control_col]] %in% control_lab
+  values - median(values[is_control], na.rm = TRUE)
+}
+```
+
+#### Chronological
+
+```{r}
+center_predictions <- function(obtained, meta, control_col, control_lab) {
+  is_control <- meta[[control_col]] %in% control_lab
+  obtained - median(obtained[is_control], na.rm = TRUE)
+}
+```
+
+## #7 Find the Models
+
+```{r}
+model_dir <- here("data","raw")
+
+model_files <- list.files(model_dir, pattern = "\\.pkl$", full.names = TRUE)
+basename(model_files)
+```
+
+## #8 Run the Models
+
+```{r}
+models       <- c("Mortality_Rodents_Liver",
+                  "Chronoage_Rodents_Liver",
+                  "Mortality_Mouse_Multitissue",
+                  "Chronoage_Mouse_Multitissue",
+                  "Mortality_Rodents_Multitissue",
+                  "Chronoage_Rodents_Multitissue")
+expected_col <- "Expected_Hazard.log10"
+group_name   <- "All_Controls"
+
+e_sub    <- eset_by_group[[group_name]]
+meta_sub <- Biobase::pData(e_sub)
+
+# Identify the 11 young control samples
+young_controls <- meta_sub$Intervention == "Control" &
+  meta_sub$Age.days < 660
+
+stopifnot(sum(young_controls, na.rm = TRUE) == 11)
+
+results_list <- list()
+
+for (model_name in models) {
+  
+  model_path <- model_files[
+    grepl(model_name, basename(model_files), fixed = TRUE)
+  ]
+  
+  if (length(model_path) != 1) {
+    warning(model_name, ": ", length(model_path),
+            " matching files, skipped")
+    next
+  }
+  
+  pred <- predict_tAge(
+    list(scaled_diff = e_sub),
+    list(scaled_diff = model_path),
+    species = "mouse",
+    mode = "EN"
+  )
+  
+  pred_cols <- setdiff(colnames(pred), colnames(meta_sub))
+  pred_col  <- pred_cols[!grepl("_sd$", pred_cols)][1]
+  
+  stopifnot(all(colnames(e_sub) %in% rownames(pred)))
+  
+  obtained <- as.numeric(pred[colnames(e_sub), pred_col])
+  
+  if (grepl("^Chronoage_", model_name)) {
+    obtained <- center_predictions(
+      obtained,
+      meta_sub,
+      control_column,
+      control_label
+    )
+  }
+
+  expected <- center_controls(
+    as.numeric(meta_sub[[expected_col]]),
+    meta_sub,
+    control_column,
+    control_label
+  )
+
+  difference <- obtained - expected
+  
+  block <- data.frame(
+    Obtained            = obtained,
+    Expected_Centered   = expected,
+    row.names           = colnames(e_sub)
+  )
+  
+  names(block) <- paste(model_name, names(block), sep = "__")
+  
+  results_list[[paste(group_name, model_name, sep = "__")]] <- block
+}
+```
+
+## #9 Results Table
+
+```{r}
+aligned_blocks <- lapply(results_list, function(b) {
+  out <- b[rownames(metadata), , drop = FALSE]
+  rownames(out) <- NULL
+  out
+})
+
+expected_centered <- center_controls(
+  as.numeric(metadata[["Expected_Hazard.log10"]]),
+  metadata,
+  control_column,
+  control_label
+)
+
+results_table <- data.frame(
+  Sample = rownames(metadata),
+  metadata,
+  Expected_Hazard.log10_centered = expected_centered,
+  " " = NA,
+  do.call(cbind, unname(aligned_blocks)),
+  check.names = FALSE,
+  row.names = NULL
+)
+
+write.csv(results_table,
+          here("experiments","replication","tAge_replication_results.csv"),
+          na="",
+          row.names= FALSE
+)
+```
