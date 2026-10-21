@@ -1,4 +1,4 @@
-# tAge Replication
+# Model Results
 
 ## #1 Load Packages
 
@@ -11,155 +11,210 @@ library(here)
 library(readxl)
 ```
 
-## #2 Python and Directories
+## #2 Configure Python and Directories
 
 ```{r}
-reticulate::py_require(c("joblib", "pandas", "scikit-learn", "numpy"))
+# Install/load the Python dependencies required by tAge
+reticulate::py_require(c(
+  "joblib",
+  "pandas",
+  "scikit-learn",
+  "numpy"
+))
 ```
 
 ## #3 Import Data
 
-### Expression
+### 3.1 Expression Data
 
 ```{r}
-expression=read.csv(here("data","raw","Expression_data_absolute_rodents_Scaled.csv"),
+# Load the scaled gene-expression matrix
+# Rows = genes; columns = samples
+expression <- read.csv(
+  here("data", "raw", "Expression_data_absolute_rodents_Scaled.csv"),
   row.names = 1,
   check.names = FALSE
 )
 ```
 
-### Metadata
-
-Tabela só com ITPs
+### 3.2 Sample Metadata
 
 ```{r}
-metadata <- read.csv(here("results","table_Zenodo.csv"),
-    row.names = 1,
-    check.names = FALSE
+# Load the metadata table containing the ITP samples and controls
+metadata <- read.csv(
+  here("results", "table_Zenodo.csv"),
+  row.names = 1,
+  check.names = FALSE
 )
 ```
 
-## #4 Common Samples
+## #4 Match Samples Between Expression and Metadata
 
-### Select Common Samples
+### 4.1 Identify Common Samples
 
 ```{r}
-common = intersect(colnames(expression),rownames(metadata))
-paste0(length(common)," samples in common")
+# Keep only samples present in both datasets (Discard non-ITP)
+common <- intersect(colnames(expression), rownames(metadata))
+
+paste0(length(common), " samples in common")
 ```
 
-### Discard Different Samples
+### 4.2 Align Sample Order
 
 ```{r}
-expression <- expression[, common]
-metadata <- metadata[common, ]
+# Use the same sample order in both datasets
+expression <- expression[, common, drop = FALSE]
+metadata <- metadata[common, , drop = FALSE]
+
+stopifnot(identical(colnames(expression), rownames(metadata)))
 ```
 
-## #5 Create Expression Set
+## #5 Create ExpressionSet
 
 ```{r}
-eset = make_ExpressionSet(
+# Combine expression data and metadata into a Bioconductor ExpressionSet
+eset <- make_ExpressionSet(
   expression,
   metadata
 )
 ```
 
-## #6 Gene alignment and subtracting control values
+## #6 Align Genes and Subtract Control Expression
 
-### Gene Alignment
+### 6.1 Align Genes to the tAge Gene List
 
 ```{r}
+# Load the genes required by tAge and align the expression matrix
 gene_list <- tAge:::load_gene_list()
 
 e <- tAge:::.align_to_gene_list(eset, gene_list)
 ```
 
-### Subtract_controls function
+### 6.2 Define Control Subtraction Function
 
 ```{r}
+# Subtract the gene-wise median expression of the specified controls from every sample in the ExpressionSet, this is done to turn the expression values as relative instead of absolute (because models are scalediff)
 control_column <- "Intervention"
 control_label  <- "Control"
 
 subtract_controls <- function(eset, control_col, control_lab) {
+
   mat <- Biobase::exprs(eset)
-  is_control <- Biobase::pData(eset)[[control_col]] %in% control_lab
-  control_median <- apply(mat[, is_control, drop = FALSE], 1, median, na.rm = TRUE)
+  meta <- Biobase::pData(eset)
+
+  is_control <- meta[[control_col]] %in% control_lab
+
+  control_median <- apply(
+    mat[, is_control, drop = FALSE],
+    1,
+    median,
+    na.rm = TRUE
+  )
+
   Biobase::exprs(eset) <- mat - control_median
+
   eset
 }
 ```
 
-### Control Subtraction
+### 6.3 Subtract Control Expression
 
 ```{r}
-eset_by_group <- list(All_Controls = subtract_controls(e, control_column, control_label))
+# Use all controls as the reference group for expression subtraction
+eset_by_group <- list(
+  All_Controls = subtract_controls(
+    e,
+    control_column,
+    control_label
+  )
+)
+
 groups <- list(All_Controls = NULL)
 ```
 
-### Subtract Controls
-
-#### Mortality
+### 6.4 Define Expected-Value Centering
 
 ```{r}
+# Center the expected values by subtracting the median value observed in the control samples
 center_controls <- function(values, meta, control_col, control_lab) {
+
   is_control <- meta[[control_col]] %in% control_lab
+
   values - median(values[is_control], na.rm = TRUE)
 }
 ```
 
-#### Chronological
+## #7 Locate Model Files
 
 ```{r}
-center_predictions <- function(obtained, meta, control_col, control_lab) {
-  is_control <- meta[[control_col]] %in% control_lab
-  obtained - median(obtained[is_control], na.rm = TRUE)
-}
-```
+# Directory containing the trained tAge model files
+model_dir <- here("data", "raw")
 
-## #7 Find the Models
+model_files <- list.files(
+  model_dir,
+  pattern = "\\.pkl$",
+  full.names = TRUE
+)
 
-```{r}
-model_dir <- here("data","raw")
-
-model_files <- list.files(model_dir, pattern = "\\.pkl$", full.names = TRUE)
 basename(model_files)
 ```
 
-## #8 Run the Models
+## #8 Run the tAge Models
+
+### 8.1 Define Models and Analysis Settings
 
 ```{r}
-models       <- c("Mortality_Rodents_Liver",
-                  "Chronoage_Rodents_Liver",
-                  "Mortality_Mouse_Multitissue",
-                  "Chronoage_Mouse_Multitissue",
-                  "Mortality_Rodents_Multitissue",
-                  "Chronoage_Rodents_Multitissue")
-expected_col <- "Expected_Hazard.log10"
-group_name   <- "All_Controls"
+# Run the mortality and chronological models for liver and multitissue
+models <- c(
+  "Mortality_Rodents_Liver",
+  "Chronoage_Rodents_Liver",
+  "Mortality_Mouse_Multitissue",
+  "Chronoage_Mouse_Multitissue",
+  "Mortality_Rodents_Multitissue",
+  "Chronoage_Rodents_Multitissue"
+)
 
-e_sub    <- eset_by_group[[group_name]]
+# Expected metadata variable used for comparison
+expected_col <- "Expected_Hazard.log10"
+
+# Control-subtracted expression dataset
+group_name <- "All_Controls"
+
+e_sub <- eset_by_group[[group_name]]
 meta_sub <- Biobase::pData(e_sub)
 
-# Identify the 11 young control samples
+# Identify the 11 young controls to exclude from the 150-sample correlation
 young_controls <- meta_sub$Intervention == "Control" &
   meta_sub$Age.days < 660
 
 stopifnot(sum(young_controls, na.rm = TRUE) == 11)
 
-results_list <- list()
+# Keep the remaining samples for the 150-sample correlation
+keep150 <- !young_controls & !is.na(young_controls)
 
+stopifnot(sum(keep150) == 150)
+
+# Store each model's predictions and statistics
+results_list <- list()
+```
+
+### 8.2 Predict Sample Values
+
+```{r}
 for (model_name in models) {
   
+  # Locate the corresponding model file
   model_path <- model_files[
     grepl(model_name, basename(model_files), fixed = TRUE)
   ]
   
   if (length(model_path) != 1) {
     warning(model_name, ": ", length(model_path),
-            " matching files, skipped")
+            " matching files; skipped")
     next
   }
   
+  # Generate predictions using control-subtracted expression data
   pred <- predict_tAge(
     list(scaled_diff = e_sub),
     list(scaled_diff = model_path),
@@ -167,52 +222,62 @@ for (model_name in models) {
     mode = "EN"
   )
   
+  # Identify the prediction column, excluding standard deviations
   pred_cols <- setdiff(colnames(pred), colnames(meta_sub))
-  pred_col  <- pred_cols[!grepl("_sd$", pred_cols)][1]
+  pred_col <- pred_cols[!grepl("_sd$", pred_cols)][1]
   
+  # Match predictions to samples by sample name
   stopifnot(all(colnames(e_sub) %in% rownames(pred)))
   
-  obtained <- as.numeric(pred[colnames(e_sub), pred_col])
-  
-  if (grepl("^Chronoage_", model_name)) {
-    obtained <- center_predictions(
-      obtained,
-      meta_sub,
-      control_column,
-      control_label
-    )
-  }
-
-  expected <- center_controls(
-    as.numeric(meta_sub[[expected_col]]),
-    meta_sub,
-    control_column,
-    control_label
+  obtained <- as.numeric(
+    pred[colnames(e_sub), pred_col]
   )
-
-  difference <- obtained - expected
   
+  # Center predictions using the median prediction of all controls
+  is_control <- meta_sub$Intervention == "Control"
+  
+  obtained <- obtained - median(
+    obtained[is_control],
+    na.rm = TRUE
+  )
+  
+  # Store centered predictions for each sample
   block <- data.frame(
-    Obtained            = obtained,
-    Expected_Centered   = expected,
-    row.names           = colnames(e_sub)
+    Obtained_Centered = obtained,
+    row.names = colnames(e_sub)
   )
   
-  names(block) <- paste(model_name, names(block), sep = "__")
+  # Save results for the current model
+  names(block) <- paste(
+    model_name,
+    names(block),
+    sep = "__"
+  )
   
   results_list[[paste(group_name, model_name, sep = "__")]] <- block
 }
 ```
 
-## #9 Results Table
+## #9 Build the Results Table
+
+### 9.1 Align Model Results
 
 ```{r}
+# Align each model's results with the original metadata sample order
 aligned_blocks <- lapply(results_list, function(b) {
+
   out <- b[rownames(metadata), , drop = FALSE]
+
   rownames(out) <- NULL
+
   out
 })
+```
 
+### 9.2 Center Expected Values and Combine Results
+
+```{r}
+# Center expected values for inclusion in the output table
 expected_centered <- center_controls(
   as.numeric(metadata[["Expected_Hazard.log10"]]),
   metadata,
@@ -220,6 +285,7 @@ expected_centered <- center_controls(
   control_label
 )
 
+# Combine metadata, centered expected values and model results
 results_table <- data.frame(
   Sample = rownames(metadata),
   metadata,
@@ -229,10 +295,160 @@ results_table <- data.frame(
   check.names = FALSE,
   row.names = NULL
 )
+```
 
-write.csv(results_table,
-          here("experiments","replication","tAge_replication_results.csv"),
-          na="",
-          row.names= FALSE
+### 9.3 Export Results
+
+```{r}
+# Save the sample-level results and model statistics
+write.csv(
+  results_table,
+  here("results",
+    "model_results_chronoage_vs_mortality.csv"
+  ),
+  na = "",
+  row.names = FALSE
+)
+```
+
+## #10 Calculate Drug Effects
+
+### 10.1 Define the Multitissue Model Pair
+
+```{r}
+# Drug effects are calculated only for the Rodents Multitissue pair
+model_pairs <- list(
+  Rodents_Multitissue = c(
+    "Mortality_Rodents_Multitissue",
+    "Chronoage_Rodents_Multitissue"
+  )
+)
+
+# Identify old controls used as the reference for drug effects
+# Young controls are excluded from this comparison
+old_controls <- metadata$Intervention == "Control" &
+  metadata$Age.days == 660
+```
+
+### 10.2 Calculate Effects Within Each Cohort
+
+```{r}
+# Consider all interventions other than Control as drug treatments
+drug_names <- unique(
+  metadata$Intervention[
+    !is.na(metadata$Intervention) &
+      metadata$Intervention != "Control"
+  ]
+)
+
+drug_effects <- list()
+
+for (pair_name in names(model_pairs)) {
+
+  for (model_name in model_pairs[[pair_name]]) {
+
+    # Retrieve the predictions stored in the model results
+    result_name <- paste(
+      group_name,
+      model_name,
+      sep = "__"
+    )
+
+    prediction_col <- paste(
+      model_name,
+      "Obtained_Centered",
+      sep = "__"
+    )
+    
+    predictions <- results_list[[result_name]][[prediction_col]]
+
+    # Ensure predictions are aligned with metadata by sample name
+    names(predictions) <- rownames(results_list[[result_name]])
+
+    predictions <- predictions[rownames(metadata)]
+
+    # Calculate one effect per drug, using only matching-cohort controls
+    effects <- vapply(drug_names, function(drug) {
+
+      drug_cohorts <- unique(
+        metadata$Cohort[metadata$Intervention == drug]
+      )
+
+      cohort_effects <- vapply(drug_cohorts, function(cohort) {
+
+        # Samples receiving the drug in this cohort
+        treated <- metadata$Intervention == drug &
+          metadata$Cohort == cohort
+
+        # Old controls from the same cohort
+        controls <- old_controls &
+          metadata$Cohort == cohort
+
+        # Cannot calculate an effect without both groups
+        if (!any(treated, na.rm = TRUE) ||
+            !any(controls, na.rm = TRUE)) {
+          return(NA_real_)
+        }
+
+        # Drug effect = mean treated prediction - mean old-control prediction
+        mean(predictions[treated], na.rm = TRUE) -
+          mean(predictions[controls], na.rm = TRUE)
+
+      }, numeric(1))
+
+      # Average cohort-specific effects, giving each cohort equal weight
+      if (all(is.na(cohort_effects))) {
+        return(NA_real_)
+      }
+
+      mean(cohort_effects, na.rm = TRUE)
+
+    }, numeric(1))
+
+    # Store effects for this model
+    drug_effects[[model_name]] <- effects
+  }
+}
+```
+
+### 10.3 Create the Drug-Effect Table
+
+```{r}
+# One row per drug, with a separate column for each multitissue clock
+drug_effects_table <- data.frame(
+  Intervention = names(drug_effects[[model_pairs[[1]][1]]]),
+  check.names = FALSE
+)
+
+for (pair_name in names(model_pairs)) {
+
+  for (model_name in model_pairs[[pair_name]]) {
+
+    # Match effects to interventions by name
+    drug_effects_table[[model_name]] <- drug_effects[[model_name]][
+      drug_effects_table$Intervention
+    ]
+  }
+}
+
+drug_effects_table$Correlation = NA_real_
+drug_effects_table$Correlation[1] = cor(
+  drug_effects_table$Mortality_Rodents_Multitissue,
+  drug_effects_table$Chronoage_Rodents_Multitissue,
+  method = "pearson", use= "complete.obs")
+```
+
+### 10.4 Export Drug Effects
+
+```{r}
+# Save the drug effects calculated for the two Rodents Multitissue models
+write.csv(
+  drug_effects_table,
+  here(
+    "results",
+    "drug_effects.csv"
+  ),
+  row.names = FALSE,
+  na = ""
 )
 ```
