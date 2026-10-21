@@ -22,12 +22,14 @@ As there are many interventions with minor changes (e.g. rapamycin regimes or di
 If interventions containing multiple regimes (e.g. Ercc1 + CR) have to be joined with its components , it will result in 41 families.
 
 ## Esquema de validação
-GroupKFold com a intervenção como grupo. Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
+LOIO com a intervenção como família, em que combinações de intervenções saem juntamente com os seus componentes. Para equivalência é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez)
 
 ## Regra de decisão
-O intervalo fica todo dentro da margem, e os dois relógios são equivalentes. A tese confirma se.
-O intervalo fica todo acima da margem, e o de mortalidade é mesmo melhor.
+Se o intervalo fica todo dentro da margem, então os dois relógios são equivalentes.
+Se o intervalo fica todo acima da margem, e o de mortalidade é melhor, caso contrário, o cronológico é melhor.
 O intervalo atravessa a margem, e o resultado é inconclusivo.
+
+Para equivalência usa-se o intervelo a 90% (bootstrap das famílias)
 
 ## Análises secundárias
 Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse Molenberghs, só trial level, não há dados individuais emparelhados). Baseline aleatório e transcriptoma completo regularizado.
@@ -51,8 +53,8 @@ Min                                                   Min
 MitoQ                                                 MitoQ
 NR                                                    NR
 PB125                                                 PB125
-RaAc_9m                                               Acarbose
-RaAc_16m                                              Acarbose
+RaAc_9m                                               Acarbose, Rapamycin
+RaAc_16m                                              Acarbose, Rapamycin
 Rapa_Continuous                                       Rapamycin
 Sul                                                   Sul
 Syr                                                   Syr
