@@ -25,7 +25,9 @@ If interventions containing multiple regimes (e.g. Ercc1 + CR) have to be joined
 GroupKFold com a intervenção como grupo. Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
 
 ## Regra de decisão
-(o que se conclui em cada um dos desfechos possíveis, escrito antes de ver os dados)
+O intervalo fica todo dentro da margem, e os dois relógios são equivalentes. A tese confirma se.
+O intervalo fica todo acima da margem, e o de mortalidade é mesmo melhor.
+O intervalo atravessa a margem, e o resultado é inconclusivo.
 
 ## Análises secundárias
 Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse Molenberghs, só trial level, não há dados individuais emparelhados). Baseline aleatório e transcriptoma completo regularizado.
