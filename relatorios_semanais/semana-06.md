@@ -45,6 +45,9 @@ A simulação será utilizada para avaliar diferentes números de intervenções
 Os resultados também ajudarão a definir a margem Δ a utilizar no pré-registo e a estabelecer uma regra de decisão antes da análise dos dados reais.
 
 O Percentile_Range mede a incerteza da diferença estimada, enquanto a margem Δ define a diferença máxima entre os relógios que será considerada praticamente irrelevante. Estes conceitos estão relacionados, mas não são equivalentes.
+---
+Foi escrito o `model_results_chronoage_vs_mortality.csv` com os valores preditos de todos os modelos pelos 161 samples.
+Foi escrito o `drug_effects.csv` com o efeito dos fármacos por modelo. Isto é a média da previsão das amostras do fármaco menos a média dos controlos (660 dias).
 
 ## 3. Executado
 
@@ -52,10 +55,25 @@ O Percentile_Range mede a incerteza da diferença estimada, enquanto a margem Δ
 - **Resultado:** Tabela de dados simulada com media dos ΔR para 20, 41 e 56 interventions
 - **Guardado em:** `results/potencia_results.csv` 
 
-- **Comando/notebook:** `experiments/preprocessing/etadata_preprocessing_full.Rmd`
+- **Comando/notebook:** `experiments/preprocessing/metadata_preprocessing_full.Rmd`
 - **Entrada:** `Data_annotation_absolute_rodents.xlsx`
 - **Resultado:** Tabela pre-processada dos metadados provenientes do Zenodo
 - **Guardado em:** `table_Zenodo_full.csv`
+
+- **Comando/notebook:** `experiments/model_results/model_results_chronoage_vs_mortality.Rmd`
+- **Entrada:** `Expression_data_absolute_rodents_Scaled.csv` e `table_Zenodo.csv`
+- **Resultado:** Efeito de cada fármaco, por modelo.
+- **Guardado em:** `drug_effects.csv`
+
+- **Comando/notebook:** `experiments/model_results/model_results_chronoage_vs_mortality.Rmd`
+- **Entrada:** `Expression_data_absolute_rodents_Scaled.csv` e `table_Zenodo.csv`
+- **Resultado:** Dados preditos por cada modelo, por sample
+- **Guardado em:** `model_results_chronoage_vs_mortality.csv`
+
+- **Comando/notebook:** `experiments/potencia/potencia_deltaR.Rmd`
+- **Entrada:** `results/drug_effects.csv`
+- **Resultado:** Potencia.Rmd com a correlação entre os modelos e os dados reais substituída pela correlação real entre os modelos de mortalidade e cronologia.
+- **Guardado em:** `results/potencia_results_deltaR.csv`
 
 ## 4. Números da semana
 
