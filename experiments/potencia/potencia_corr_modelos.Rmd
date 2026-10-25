@@ -135,10 +135,12 @@ for (cor in correlation_LODO){
         quantile(delta_corr_values, 0.95) -
         quantile(delta_corr_values, 0.05)
     ))
+    
+    cat("There are", LB_under_zero, "simulations with the lower bound below 0 for
+        correlation_LODO =", cor," and correlations_between_models = ", corr_value, "\n")
   }
   
   results
-  cat("There are", LB_under_zero, "simulations with the lower bound below zero for correlation_LODO =", cor, "\n")
   
 }
 ```
