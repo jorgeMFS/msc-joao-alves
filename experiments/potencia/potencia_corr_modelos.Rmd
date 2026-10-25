@@ -22,17 +22,18 @@ data <- read.csv(here("results","drug_effects.csv"))
 ```{r}
 nint = 56
 correlations_between_models = c(0.8, 0.9, 0.95)
+correlation_LODO = c(0.53, 0.45)
 ```
 
 ## #5 Simulated Effect Data Function
 
 ```{r}
-simulated_data <- function(corr_between_models=0.8, noise_mean = 0, noise_sd = 0.3) {
+simulated_data <- function(corr_between_models=0.8, corr_LODO = 0.53, noise_mean = 0, noise_sd = 0.3) {
 
   cor_matrix <- matrix(
     c(
-      1,   0.53, 0.36,
-      0.53, 1,   corr_between_models,
+      1,   corr_LODO, 0.36,
+      corr_LODO, 1,   corr_between_models,
       0.36, corr_between_models, 1
     ),
     nrow = 3,
@@ -91,52 +92,55 @@ potencia <- data.frame(
   Clock_LODO = numeric(nint),
   Clock_LOIO = numeric(nint)
 )
-
-for (corr_value in correlations_between_models) {
+for (cor in correlation_LODO){
   
-  delta_corr_values <- numeric(1000)
-  
-  bootstrap_values <- vector("list", 1000)
-  
-  CI <- data.frame(
-    p5 = numeric(1000),
-    p95 = numeric(1000)
-  )
-  
-  for (i in 1:1000) {
-    effects <- simulated_data(corr_between_models = corr_value)
-    df <- potencia
-    df[, 2:4] <- effects
-    delta_corr_values[i] <- corr(df)
+  for (corr_value in correlations_between_models) {
     
-    boot_results = boot(
-      data = effects,
-      statistic = delta_corr,
-      R = 500
+    delta_corr_values <- numeric(1000)
+    
+    bootstrap_values <- vector("list", 1000)
+    
+    CI <- data.frame(
+      p5 = numeric(1000),
+      p95 = numeric(1000)
     )
     
-    CI$p5[i] <- quantile(boot_results$t, probs = 0.05)
-    CI$p95[i] <- quantile(boot_results$t, probs = 0.95)
+    for (i in 1:1000) {
+      effects <- simulated_data(corr_between_models = corr_value, corr_LODO = cor)
+      df <- potencia
+      df[, 2:4] <- effects
+      delta_corr_values[i] <- corr(df)
+      
+      boot_results = boot(
+        data = effects,
+        statistic = delta_corr,
+        R = 500
+      )
+      
+      CI$p5[i] <- quantile(boot_results$t, probs = 0.05)
+      CI$p95[i] <- quantile(boot_results$t, probs = 0.95)
+    }
+    
+    LB_under_zero=sum(CI$p5 < 0)
+    
+    results <- rbind(results, data.frame(
+      Scenario = scenario,
+      nint = nint,
+      corr_between_models = corr_value,
+      Mean_corr_between_models = mean(delta_corr_values),
+      Percentile_Range_CI95 =
+        quantile(delta_corr_values, 0.975) -
+        quantile(delta_corr_values, 0.025),
+      Percentile_Range_CI90 =
+        quantile(delta_corr_values, 0.95) -
+        quantile(delta_corr_values, 0.05)
+    ))
   }
   
-  LB_under_zero=sum(CI$p5 < 0)
+  results
+  cat("There are", LB_under_zero, "simulations with the lower bound below zero for correlation_LODO =", cor, "\n")
   
-  results <- rbind(results, data.frame(
-    Scenario = scenario,
-    nint = nint,
-    corr_between_models = corr_value,
-    Mean_corr_between_models = mean(delta_corr_values),
-    Percentile_Range_CI95 =
-      quantile(delta_corr_values, 0.975) -
-      quantile(delta_corr_values, 0.025),
-    Percentile_Range_CI90 =
-      quantile(delta_corr_values, 0.95) -
-      quantile(delta_corr_values, 0.05)
-  ))
 }
-
-results
-cat("There are", LB_under_zero, "simulations with the lower bound below zero")
 ```
 
 ## #9 Export File
