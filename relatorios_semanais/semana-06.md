@@ -49,7 +49,7 @@ A simulação será utilizada para avaliar diferentes números de intervenções
 
 Os resultados também ajudarão a definir a margem Δ a utilizar no pré-registo e a estabelecer uma regra de decisão antes da análise dos dados reais.
 
-O Percentile_Range mede a incerteza da diferença estimada, enquanto a margem Δ define a diferença máxima entre os relógios que será considerada praticamente irrelevante. Estes conceitos estão relacionados, mas não são equivalentes.
+O Percentile_Range mede quanto a diferença varia de simulação para simulação
 ---
 Foi escrito o `model_results_chronoage_vs_mortality.csv` com os valores preditos de todos os modelos pelos 161 samples.
 Foi escrito o `drug_effects.csv` com o efeito dos fármacos por modelo. Isto é a média da previsão das amostras do fármaco menos a média dos controlos (660 dias).
@@ -128,7 +128,7 @@ Deste modo, avaliamos se o teste tem potência suficiente para detetar uma difer
 
 - **Comando/notebook:** `experiments/potencia/potencia_corr_modelos.Rmd`
 - **Entrada:** `results/drug_effects.csv`
-- **Resultado:** Versão 2 do `Potencia.Rmd` com a correlação entre os modelos e os dados reais substituída pela correlação real entre os modelos de mortalidade e cronologia. chol() ao invés do mvrnorm e bootstraps por cada simulação. Realização de um TOST.
+- **Resultado:** Versão 2 do `Potencia.Rmd` com a correlação entre os modelos e os dados reais substituída pela correlação real entre os modelos de mortalidade e cronologia. chol() ao invés do mvrnorm e bootstraps por cada simulação. Realização de um teste unilateral de diferença.
 Os valores de correlação entre o modelo
 - **Guardado em:** `results/potencia_results_corr_between_models.csv`
 
