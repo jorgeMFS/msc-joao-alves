@@ -1,6 +1,6 @@
 # Pré registo
 
-## Hipótese primária (equivalência, não diferença)
+## Hipótese primária (diferença, não equivalência)
 
 Sob LOIO com folds idênticos, o relógio de mortalidade **não confere capacidade de generalização
 adicional** sobre o relógio cronológico, na associação ao nível da intervenção entre o efeito do
@@ -15,6 +15,17 @@ contido em [−Δ, +Δ], com **Δ = ______** (preencher a partir de `potencia.md
 **Números de referência publicados:** r² ≈ 0,13 (cronológico) e r² ≈ 0,28 (mortalidade).
 A previsão da tese é que o segundo colapse para ≈ 0,13 sob LOIO.
 
+---
+Dado que para definir Δ, obtivemos uma margem demasiado permissiva (0.56, enquanto a diferença entre o R_Mortality e R_Chronological = 0.17), tivemos de optar por outra estratégia, já que reduzir o Δ para 0.17 tornaria o teste exigente demais (seriam necessárias mais de 500 famílias). Por isso passámos a testar a diferença:
+
+O objetivo é avaliar se o relógio de mortalidade apresenta melhor capacidade preditiva em LODO do que em LOIO, ou seja, se a exclusão de intervenções relacionadas reduz a associação entre as previsões do relógio e o tempo de vida real.
+
+Operacionalmente: comparamos a diferença emparelhada entre as correlações r_LODO - r_LOIO, nas mesmas 56 famílias. Consideramos que existe evidência de uma vantagem de LODO quando o limite inferior do intervalo de confiança de 90% é superior a zero.
+Isto é um teste unilateral de superioridade. Não procuramos demonstrar equivalência entre os métodos, mas determinar se LODO apresenta uma correlação superior à de LOIO.
+
+**Números de referência publicados:** r ≈ 0.53 (LODO/Lifepsan) e r ≈ 0.36 (LOIO/Lifespan)
+
+
 ## Definição de intervenção
 
 As there are many interventions with minor changes (e.g. rapamycin regimes or diet), each group will only count as a single family. Following this step, this will result in 56 families (with control).
@@ -22,14 +33,14 @@ As there are many interventions with minor changes (e.g. rapamycin regimes or di
 If interventions containing multiple regimes (e.g. Ercc1 + CR) have to be joined with its components , it will result in 41 families.
 
 ## Esquema de validação
-LOIO com a intervenção como família, em que combinações de intervenções saem juntamente com os seus componentes. Para equivalência é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez)
+LOIO com a intervenção como família, em que combinações de intervenções saem juntamente com os seus componentes. Para equivalência é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez). GroupKFold com a intervenção como grupo. Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
+Vão ser usados 20, 41 ou 56 grupos de intervenções.
+- 20: corresponde às 20 intervenções ITP
+- 41: corresponde aos blocos, porque cada combinação sai com os seus componentes
+- 56: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma ou mais famílias (e.g. RaAc percence a Rapamycin e a Acarbose)
 
 ## Regra de decisão
-Se o intervalo fica todo dentro da margem, então os dois relógios são equivalentes.
-Se o intervalo fica todo acima da margem, e o de mortalidade é melhor, caso contrário, o cronológico é melhor.
-O intervalo atravessa a margem, e o resultado é inconclusivo.
-
-Para equivalência usa-se o intervelo a 90% (bootstrap das famílias)
+• Teste com menor número de simulções com o lower bound inferior a zero, já que este apresentará a maior potência
 
 ## Análises secundárias
 Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse Molenberghs, só trial level, não há dados individuais emparelhados). Baseline aleatório e transcriptoma completo regularizado.
