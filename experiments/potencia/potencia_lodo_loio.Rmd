@@ -91,6 +91,11 @@ potencia <- data.frame(
   Clock_LOIO = numeric(nint)
 )
 
+R_LODO_LOIO=data.frame(
+  R_LODO=numeric(),
+  R_LOIO=numeric()
+)
+
 for (correlation_LOIO in corr_LOIO) {
   
   for (corr_value in correlations_between_models) {
@@ -119,26 +124,33 @@ for (correlation_LOIO in corr_LOIO) {
         R = 1000
       )
       
+      R_LODO_LOIO = rbind(R_LODO_LOIO, data.frame(
+        R_LODO = correlations[2],
+        R_LOIO = correlations[3]
+      ))
+      
+      
       CI$p5[i] <- quantile(boot_results$t, probs = 0.05)
       CI$p95[i] <- quantile(boot_results$t, probs = 0.95)
     }
     
-    LB_under_zero=sum(CI$p5 < 0)
+    LB_under_zero=sum(CI$p5 <= 0)
     
     results <- rbind(results, data.frame(
       nint = nint,
       corr_LOIO_Lifespan = correlation_LOIO,
       corr_between_models = corr_value,
-      Mean_corr_between_models = mean(delta_corr_values),
+      Mean_delta_r = mean(delta_corr_values),
       Percentile_Range_CI95 =
         quantile(delta_corr_values, 0.975) -
         quantile(delta_corr_values, 0.025),
       Percentile_Range_CI90 =
         quantile(delta_corr_values, 0.95) -
         quantile(delta_corr_values, 0.05),
-      r_LODO = correlations[[2]],
-      r_LOIO = correlations[[3]],
-      n_LB_under_zero = LB_under_zero
+      r_LODO = mean(R_LODO_LOIO$R_LODO),
+      r_LOIO = mean(R_LODO_LOIO$R_LOIO),
+      n_LB_under_zero = LB_under_zero,
+      potencia = 1-LB_under_zero/1000
     ))
   }
 }
