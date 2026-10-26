@@ -1,65 +1,69 @@
 ## #1 Load Packages
 
 ```{r}
+library(MASS)
 library(here)
-library(boot)
 ```
 
-## #2 Set seed
+## #2 Set seed and Import Data
 
 ```{r}
 set.seed(123)
 ```
 
-## #3 Import Data
-
 ```{r}
 data <- read.csv(here("results","drug_effects.csv"))
+R <- data$Correlation[1]
 ```
 
-## #4 Choose Scenarios
+## #3 Choose Scenarios
 
 ```{r}
-nint = 56
-correlations_between_models = c(0.8, 0.9, 0.95)
-correlation_LODO = c(0.53, 0.45)
+nint_values = c(20, 41, 56)
+names(nint_values) = c("ITP Only", "Pessimistic Scenario", "Real")
 ```
 
-## #5 Simulated Effect Data Function
+## #4 Simulated Effect Data Function
 
 ```{r}
-simulated_data <- function(corr_between_models=0.8, corr_LODO = 0.53, noise_mean = 0, noise_sd = 0.3) {
+simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 0.3, deltaR = R) {
 
   cor_matrix <- matrix(
     c(
-      1,   corr_LODO, 0.36,
-      corr_LODO, 1,   corr_between_models,
-      0.36, corr_between_models, 1
+      1,   target_corr, target_corr,
+      target_corr, 1,   deltaR,
+      target_corr, deltaR, 1
     ),
     nrow = 3,
     byrow = TRUE
   )
   
-  R <- chol(cor_matrix)
-  Z <- matrix(rnorm(nint * 3), nrow = nint, ncol = 3)
-  
-  effects <- Z %*% R
+  effects <- MASS::mvrnorm(
+    n = nint,
+    mu = c(0, 0, 0),
+    Sigma = cor_matrix
+  )
   
   #Add Noise to Data
   noise1 = rnorm(nint, mean = noise_mean, sd = noise_sd)
+  noise2 = rnorm(nint, mean = noise_mean, sd = noise_sd)
+  noise3 = rnorm(nint, mean = noise_mean, sd = noise_sd)
+  
   effects[,1] = effects[,1] + noise1
-
+  effects[,2] = effects[,2] + noise2
+  effects[,3] = effects[,3] + noise3
+  
   return(effects)
 }
 ```
 
-## #6 Correlation Function
+## #5 Correlation Function
 
 ```{r}
 corr <- function(df, met="pearson") {
   
-  corr_c = cor(df$Lifespan, df$Clock_LODO, method = met)
-  corr_m = cor(df$Lifespan, df$Clock_LOIO, method = met)
+  corr_c = cor(df$Lifespan_Effect, df$Chronological_Effect, method = met)
+  corr_m = cor(df$Lifespan_Effect, df$Mortality_Effect, method = met)
   
   delta_corr = corr_m - corr_c
   
@@ -67,88 +71,50 @@ corr <- function(df, met="pearson") {
 }
 ```
 
-## #7 Bootstrap Delta R Function
+## #6 Simulate 1000 Times
 
 ```{r}
-delta_corr <- function(data, indices) {
-  sample <- data[indices, ]
-  
-  RLODO <- cor(sample[, 1], sample[, 2])
-  RLOIO <- cor(sample[, 1], sample[, 3])
-  
-  R=RLODO - RLOIO
-  return(R)
-}
-```
+target_corr_values <- c(0, 0.3, 0.6)
 
-## #8 Simulate 1000 Times
-
-```{r}
 results <- data.frame()
 
-potencia <- data.frame(
-  Intervention = paste0("Drug_", 1:nint),
-  Lifespan = numeric(nint),
-  Clock_LODO = numeric(nint),
-  Clock_LOIO = numeric(nint)
-)
-for (cor in correlation_LODO){
+for (scenario in names(nint_values)) {
   
-  for (corr_value in correlations_between_models) {
+  nint <- nint_values[scenario]
+  
+  potencia <- data.frame(
+    Intervention = paste0("Drug_", 1:nint),
+    Lifespan_Effect = numeric(nint),
+    Chronological_Effect = numeric(nint),
+    Mortality_Effect = numeric(nint)
+  )
+  
+  for (target in target_corr_values) {
     
-    delta_corr_values <- numeric(1000)
-    
-    bootstrap_values <- vector("list", 1000)
-    
-    CI <- data.frame(
-      p5 = numeric(1000),
-      p95 = numeric(1000)
-    )
-    
-    for (i in 1:1000) {
-      effects <- simulated_data(corr_between_models = corr_value, corr_LODO = cor)
+    delta_corr_values <- replicate(1000, {
+      effects <- simulated_data(target)
       df <- potencia
       df[, 2:4] <- effects
-      delta_corr_values[i] <- corr(df)
-      
-      boot_results = boot(
-        data = effects,
-        statistic = delta_corr,
-        R = 500
-      )
-      
-      CI$p5[i] <- quantile(boot_results$t, probs = 0.05)
-      CI$p95[i] <- quantile(boot_results$t, probs = 0.95)
-    }
-    
-    LB_under_zero=sum(CI$p5 < 0)
+      corr(df)
+    })
     
     results <- rbind(results, data.frame(
       Scenario = scenario,
       nint = nint,
-      corr_between_models = corr_value,
-      Mean_corr_between_models = mean(delta_corr_values),
-      Percentile_Range_CI95 =
+      target_corr = target,
+      Mean_DeltaR = mean(delta_corr_values),
+      Percentile_Range =
         quantile(delta_corr_values, 0.975) -
-        quantile(delta_corr_values, 0.025),
-      Percentile_Range_CI90 =
-        quantile(delta_corr_values, 0.95) -
-        quantile(delta_corr_values, 0.05)
+        quantile(delta_corr_values, 0.025)
     ))
-    
-    cat("There are", LB_under_zero, "simulations with the lower bound below 0 for
-        correlation_LODO =", cor," and correlations_between_models = ", corr_value, "\n")
   }
-  
-  results
-  
 }
+
+results
 ```
 
-## #9 Export File
+## #7 Export File
 
 ```{r}
-write.csv(results,
-          here("results","potencia_results_corr_between_models.csv"),
-          row.names = FALSE)
+write.csv(results, here("results","potencia_results_deltaR.csv"), row.names = FALSE)
 ```

@@ -1,0 +1,155 @@
+## #1 Load Packages
+
+```{r}
+library(here)
+library(boot)
+```
+
+## #2 Set seed
+
+```{r}
+set.seed(123)
+```
+
+## #3 Import Data
+
+```{r}
+data <- read.csv(here("results","drug_effects.csv"))
+```
+
+## #4 Choose Correlation Values
+
+```{r}
+nint = 56
+correlations_between_models = c(0.8, 0.9, 0.95)
+corr_LOIO = c(0.36, 0.45, 0.53)
+```
+
+## #5 Simulated Effect Data Function
+
+```{r}
+simulated_data <- function(corr_between_models=0.8, corr_LODO = 0.53, corr_LOIO = 0.36) {
+
+  cor_matrix <- matrix(
+    c(
+      1,   corr_LODO, corr_LOIO,
+      corr_LODO, 1,   corr_between_models,
+      corr_LOIO, corr_between_models, 1
+    ),
+    nrow = 3,
+    byrow = TRUE
+  )
+  
+  R <- chol(cor_matrix)
+  Z <- matrix(rnorm(nint * 3), nrow = nint, ncol = 3)
+  
+  effects <- Z %*% R
+
+  return(effects)
+}
+```
+
+## #6 Correlation Function
+
+```{r}
+corr <- function(df, met="pearson") {
+  
+  corr_lodo = cor(df$Lifespan, df$Clock_LODO, method = met)
+  corr_loio = cor(df$Lifespan, df$Clock_LOIO, method = met)
+  
+  delta_corr = corr_lodo - corr_loio
+  
+  correlation = c(delta_corr, corr_lodo, corr_loio)
+  
+  return (correlation)
+}
+```
+
+## #7 Bootstrap Delta R Function
+
+```{r}
+delta_corr <- function(data, indices) {
+  sample <- data[indices, ]
+  
+  RLODO <- cor(sample[, 1], sample[, 2])
+  RLOIO <- cor(sample[, 1], sample[, 3])
+  
+  R=RLODO - RLOIO
+  return(R)
+}
+```
+
+## #8 Simulate 1000 Times
+
+```{r}
+results <- data.frame()
+
+potencia <- data.frame(
+  Intervention = paste0("Drug_", 1:nint),
+  Lifespan = numeric(nint),
+  Clock_LODO = numeric(nint),
+  Clock_LOIO = numeric(nint)
+)
+
+for (correlation_LOIO in corr_LOIO) {
+  
+  for (corr_value in correlations_between_models) {
+    
+    delta_corr_values <- numeric(1000)
+    
+    bootstrap_values <- vector("list", 1000)
+    
+    CI <- data.frame(
+      p5 = numeric(1000),
+      p95 = numeric(1000)
+    )
+    
+    for (i in 1:1000) {
+      effects <- simulated_data(
+        corr_between_models = corr_value,
+        corr_LOIO = correlation_LOIO)
+      df <- potencia
+      df[, 2:4] <- effects
+      correlations=corr(df)
+      delta_corr_values[i] <- correlations[[1]]
+      
+      boot_results = boot(
+        data = effects,
+        statistic = delta_corr,
+        R = 1000
+      )
+      
+      CI$p5[i] <- quantile(boot_results$t, probs = 0.05)
+      CI$p95[i] <- quantile(boot_results$t, probs = 0.95)
+    }
+    
+    LB_under_zero=sum(CI$p5 < 0)
+    
+    results <- rbind(results, data.frame(
+      nint = nint,
+      corr_LOIO_Lifespan = correlation_LOIO,
+      corr_between_models = corr_value,
+      Mean_corr_between_models = mean(delta_corr_values),
+      Percentile_Range_CI95 =
+        quantile(delta_corr_values, 0.975) -
+        quantile(delta_corr_values, 0.025),
+      Percentile_Range_CI90 =
+        quantile(delta_corr_values, 0.95) -
+        quantile(delta_corr_values, 0.05),
+      r_LODO = correlations[[2]],
+      r_LOIO = correlations[[3]],
+      n_LB_under_zero = LB_under_zero
+    ))
+  }
+}
+
+results
+```
+
+## #9 Export File
+
+```{r}
+write.csv(results,
+          here("results","potencia_lodo_loio.csv"),
+          row.names = FALSE)
+```
