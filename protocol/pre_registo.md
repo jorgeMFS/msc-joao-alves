@@ -1,21 +1,6 @@
 # Pré registo
 
 ## Hipótese primária (diferença, não equivalência)
-
-Sob LOIO com folds idênticos, o relógio de mortalidade **não confere capacidade de generalização
-adicional** sobre o relógio cronológico, na associação ao nível da intervenção entre o efeito do
-composto no relógio e o seu efeito no tempo de vida.
-
-Operacionalmente: o intervalo de confiança da **diferença emparelhada** entre os dois relógios está
-contido em [−Δ, +Δ], com **Δ = ______** (preencher a partir de `potencia.md`, antes de ver os dados).
-
-> Isto é um **teste de equivalência**, não um teste de diferença. "Não rejeitar a hipótese nula de
-> diferença zero" não demonstra equivalência; é preciso a margem, e a margem é pré-registada.
-
-**Números de referência publicados:** r² ≈ 0,13 (cronológico) e r² ≈ 0,28 (mortalidade).
-A previsão da tese é que o segundo colapse para ≈ 0,13 sob LOIO.
-
----
 Dado que para definir Δ, obtivemos uma margem demasiado permissiva (0.56, enquanto a diferença entre o R_Mortality e R_Chronological = 0.17), tivemos de optar por outra estratégia, já que reduzir o Δ para 0.17 tornaria o teste exigente demais (seriam necessárias mais de 500 famílias). Por isso passámos a testar a diferença:
 
 O objetivo é avaliar se o relógio de mortalidade apresenta melhor capacidade preditiva em LODO do que em LOIO, ou seja, se a exclusão de intervenções relacionadas reduz a associação entre as previsões do relógio e o tempo de vida real.
@@ -23,7 +8,12 @@ O objetivo é avaliar se o relógio de mortalidade apresenta melhor capacidade p
 Operacionalmente: comparamos a diferença emparelhada entre as correlações r_LODO - r_LOIO, nas mesmas 56 famílias. Consideramos que existe evidência de uma vantagem de LODO quando o limite inferior do intervalo de confiança de 90% é superior a zero.
 Isto é um teste unilateral de superioridade. Não procuramos demonstrar equivalência entre os métodos, mas determinar se LODO apresenta uma correlação superior à de LOIO.
 
-**Números de referência publicados:** r ≈ 0.53 (LODO/Lifepsan) e r ≈ 0.36 (LOIO/Lifespan)
+**Números de referência publicados:** 
+*Para o relógio de mortalidade*
+r ≈ 0.53 (LODO/Lifepsan)
+
+*Para o relógio cronológico*
+r ≈ 0.36 (LODO/Lifespan)
 
 
 ## Definição de intervenção
@@ -33,14 +23,14 @@ As there are many interventions with minor changes (e.g. rapamycin regimes or di
 If interventions containing multiple regimes (e.g. Ercc1 + CR) have to be joined with its components , it will result in 41 families.
 
 ## Esquema de validação
-LOIO com a intervenção como família, em que combinações de intervenções saem juntamente com os seus componentes. Para equivalência é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez). GroupKFold com a intervenção como grupo. Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
-Vão ser usados 20, 41 ou 56 grupos de intervenções.
-- 20: corresponde às 20 intervenções ITP
-- 41: corresponde aos blocos, porque cada combinação sai com os seus componentes
-- 56: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma ou mais famílias (e.g. RaAc percence a Rapamycin e a Acarbose)
+LOIO com a intervenção como família, em que combinações de intervenções saem juntamente com os seus componentes. Para diferença é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez). GroupKFold com a intervenção como grupo. Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
+Vão ser usadas 56 grupos de intervenções.
+- 56: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma ou mais famílias (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose")
 
 ## Regra de decisão
-• Teste com menor número de simulções com o lower bound inferior a zero, já que este apresentará a maior potência
+Para CI 90% = [X,Y]:
+- Se X > 0 : O relógio de mortalidade perde desempenho quando não vê a intervenção
+- Se X < 0 : Não se pode concluir que o relógio de mortalidade perde desempenho quando não vê a intervenção
 
 ## Análises secundárias
 Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse Molenberghs, só trial level, não há dados individuais emparelhados). Baseline aleatório e transcriptoma completo regularizado.
