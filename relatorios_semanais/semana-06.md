@@ -129,7 +129,6 @@ Deste modo, avaliamos se o teste tem potência suficiente para detetar uma difer
 - **Comando/notebook:** `experiments/potencia/potencia_corr_modelos.Rmd`
 - **Entrada:** `results/drug_effects.csv`
 - **Resultado:** Versão 2 do `Potencia.Rmd` com a correlação entre os modelos e os dados reais substituída pela correlação real entre os modelos de mortalidade e cronologia. chol() ao invés do mvrnorm e bootstraps por cada simulação. Realização de um teste unilateral de diferença.
-Os valores de correlação entre o modelo
 - **Guardado em:** `results/potencia_results_corr_between_models.csv`
 
 ## 4. Números da semana
