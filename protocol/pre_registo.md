@@ -10,7 +10,7 @@ Isto é um teste unilateral de superioridade. Não procuramos demonstrar equival
 
 **Números de referência publicados:** 
 *Para o relógio de mortalidade*
-r ≈ 0.53 (LODO/Lifepsan)
+r ≈ 0.53 (LODO/Lifespan)
 
 *Para o relógio cronológico*
 r ≈ 0.36 (LODO/Lifespan)
@@ -20,10 +20,11 @@ r ≈ 0.36 (LODO/Lifespan)
 
 As there are many interventions with minor changes (e.g. rapamycin regimes or diet), each group will only count as a single family. Following this step, this will result in 56 families (with control).
 
-If interventions containing multiple regimes (e.g. Ercc1 + CR) have to be joined with its components , it will result in 41 families.
+
 
 ## Esquema de validação
-LOIO com a intervenção como família, em que combinações de intervenções saem juntamente com os seus componentes. Para diferença é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez). GroupKFold com a intervenção como grupo. Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
+LODO tira do treino um dataset inteiro enquanto LOIO retira uma família. Para diferença é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez). 
+
 Vão ser usadas 56 grupos de intervenções.
 - 56: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma ou mais famílias (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose")
 
@@ -34,6 +35,19 @@ Para CI 90% = [X,Y]:
 
 ## Análises secundárias
 Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse Molenberghs, só trial level, não há dados individuais emparelhados). Baseline aleatório e transcriptoma completo regularizado.
+
+nint	corr_LOIO_Lifespan	corr_between_models	Mean_corr_between_models	Percentile_Range_CI95	Percentile_Range_CI90	r_LODO	r_LOIO	n_LB_under_zero
+56	    0.36	            0.8	                0.164	                    0.301	                0.246	                0.658	0.544	272
+56	    0.36	            0.9	                0.170	                    0.229	                0.186	                0.594	0.432	53
+56	    0.36	            0.95	            0.166	                    0.176	                0.141	                0.448	0.274	0
+56	    0.45	            0.8	                0.079	                    0.284	                0.237	                0.511	0.342	693
+56	    0.45	            0.9	                0.081	                    0.209	                0.172	                0.338	0.206	518
+56	    0.45	            0.95	            0.081	                    0.153	                0.129	                0.470	0.420	278
+56	    0.53             	0.8	               -0.002	                    0.273	                0.229	                0.539	0.642	951
+56	    0.53	            0.9	                    0	                    0.204	                0.166	                0.558	0.623	941
+56	    0.53	            0.95	                0	                    0.144	                0.123	                0.600	0.638	930
+
+
 
 **Treatments to be tested**
 
