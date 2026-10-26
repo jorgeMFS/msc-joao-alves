@@ -1,7 +1,6 @@
 ## #1 Load Packages
 
 ```{r}
-library(MASS)
 library(here)
 ```
 
@@ -38,11 +37,10 @@ simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 0.3, deltaR
     byrow = TRUE
   )
   
-  effects <- MASS::mvrnorm(
-    n = nint,
-    mu = c(0, 0, 0),
-    Sigma = cor_matrix
-  )
+  R <- chol(cor_matrix)
+  Z <- matrix(rnorm(nint * 3), nrow = nint, ncol = 3)
+  
+  effects <- Z %*% R
   
   #Add Noise to Data
   noise1 = rnorm(nint, mean = noise_mean, sd = noise_sd)
@@ -103,9 +101,12 @@ for (scenario in names(nint_values)) {
       nint = nint,
       target_corr = target,
       Mean_DeltaR = mean(delta_corr_values),
-      Percentile_Range =
+      Percentile_RangeCI95 =
         quantile(delta_corr_values, 0.975) -
-        quantile(delta_corr_values, 0.025)
+        quantile(delta_corr_values, 0.025),
+      Percentile_RangeCI90 =
+        quantile(delta_corr_values, 0.95) -
+        quantile(delta_corr_values, 0.05)
     ))
   }
 }
@@ -116,5 +117,5 @@ results
 ## #7 Export File
 
 ```{r}
-write.csv(results, here("results","potencia_results_deltaR.csv"), row.names = FALSE)
+write.csv(results, here("results","potencia_results_corr_modelos.csv"), row.names = FALSE)
 ```
