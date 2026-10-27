@@ -25,10 +25,10 @@ As there are many interventions with minor changes (e.g. rapamycin regimes or di
 ## Esquema de validação
 - LODO tira do treino um dataset inteiro.
 - LOIO exclui o dataset D e, nos outros datasets, a família F e as que partilham componente com ela (por exemplo, para a RaAc saem também a Rapamycin e a Acarbose). Para diferença é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez). 
-GroupKFold com a intervenção como grupo. Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
+Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
 
 Vão ser usadas 56 grupos de intervenções.
-- 56: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma ou mais famílias (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose")
+- 56: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma ou mais famílias (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose", embora saia do treino quando se prevê ou a "Rapamycin" ou "Acarbose")
 
 ## Regra de decisão
 Para CI 90% = [X,Y]:
@@ -37,6 +37,8 @@ Para CI 90% = [X,Y]:
 
 ## Análises secundárias
 Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse Molenberghs, só trial level, não há dados individuais emparelhados). Baseline aleatório e transcriptoma completo regularizado.
+
+## Potência
 
 ### Tabela 1 — Resultados das simulações
 
@@ -52,8 +54,6 @@ Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse 
 | 56 | 0.53 | 0.90 | 0.000011 | 0.204405 | 0.165872 | 0.530182 | 0.530172 | 941 |
 | 56 | 0.53 | 0.95 | 0.000157 | 0.144280 | 0.122973 | 0.526080 | 0.525924 | 930 |
 
-## Potência
-
 ### Tabela 2 — Potência estatística
 
 | nint | corr_LOIO_Lifespan | corr_between_models | n_LB_under_zero | potencia |
@@ -67,6 +67,8 @@ Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse 
 | 56 | 0.53 | 0.80 | 951 | 0.049 |
 | 56 | 0.53 | 0.90 | 941 | 0.059 |
 | 56 | 0.53 | 0.95 | 930 | 0.070 |
+
+Rows com corr_LOIO_Lifespan = 0.53 são a taxa de falsos positivos, não de potência
 
 ---
 
