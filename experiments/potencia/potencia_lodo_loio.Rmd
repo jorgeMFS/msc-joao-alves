@@ -91,11 +91,6 @@ potencia <- data.frame(
   Clock_LOIO = numeric(nint)
 )
 
-R_LODO_LOIO=data.frame(
-  R_LODO=numeric(),
-  R_LOIO=numeric()
-)
-
 for (correlation_LOIO in corr_LOIO) {
   
   for (corr_value in correlations_between_models) {
@@ -107,6 +102,11 @@ for (correlation_LOIO in corr_LOIO) {
     CI <- data.frame(
       p5 = numeric(1000),
       p95 = numeric(1000)
+    )
+    
+    R_LODO_LOIO=data.frame(
+      R_LODO=numeric(),
+      R_LOIO=numeric()
     )
     
     for (i in 1:1000) {
