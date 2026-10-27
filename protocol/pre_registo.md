@@ -23,7 +23,9 @@ As there are many interventions with minor changes (e.g. rapamycin regimes or di
 
 
 ## Esquema de validação
-LODO tira do treino um dataset inteiro enquanto LOIO retira uma família. Para diferença é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez). 
+- LODO tira do treino um dataset inteiro.
+- LOIO exclui o dataset D e, nos outros datasets, a família F e as que partilham componente com ela (por exemplo, para a RaAc saem também a Rapamycin e a Acarbose). Para diferença é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez). 
+GroupKFold com a intervenção como grupo. Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
 
 Vão ser usadas 56 grupos de intervenções.
 - 56: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma ou mais famílias (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose")
@@ -35,6 +37,11 @@ Para CI 90% = [X,Y]:
 
 ## Análises secundárias
 Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse Molenberghs, só trial level, não há dados individuais emparelhados). Baseline aleatório e transcriptoma completo regularizado.
+
+
+
+
+---
 
 nint	corr_LOIO_Lifespan	corr_between_models	Mean_corr_between_models	Percentile_Range_CI95	Percentile_Range_CI90	r_LODO	r_LOIO	n_LB_under_zero
 56	    0.36	            0.8	                0.164	                    0.301	                0.246	                0.658	0.544	272
