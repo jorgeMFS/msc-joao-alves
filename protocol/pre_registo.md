@@ -74,7 +74,7 @@ Rows com corr_LOIO_Lifespan = 0.53 são a taxa de falsos positivos, não de pot�
 
 **Treatments to be tested**
 
-**Intervention**                                      **Family**
+**Intervention**                                      **Family** (25)
 
 17aE2_16m                                             17-alpha-estradiol
 17aE2_20m                                             17-alpha-estradiol
@@ -162,4 +162,4 @@ Sirt1 +/- & CR; 40% from 2m                          Sirt1; CR
 Lmna G609G/G609G progeria & Methionine restriction   Lmna; Methionine restriction
 Ercc1 delta/- progeria & CR; 30%                     Ercc1; CR
 
-Ercc1 delta/- progeria & Hypoxia; 11%                Ercc1; Hypoxia
+Ercc1 delta/- progeria & Hypoxia; 11%                Ercc1; Hypoxia - É retirado porque não tem controlos
