@@ -52,7 +52,7 @@ def construir_tabela_intervencoes(amostras, sobrevivencia, definicao="Family"):
              hr_m, hr_f, e os respetivos erros padrão.
     Entregável da semana 1: results/intervencoes.csv
     """
-    df = pd.merge(amostras, sobrevivencia, on=definicao)
+
     raise NotImplementedError
 
 #construir_tabela_intervencoes(carregar_metadados_amostras(), carregar_sobrevivencia())
