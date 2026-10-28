@@ -27,7 +27,7 @@ Late-life CR; 40%,CR,CR,
 HF diet; from 12 months,HF,HF,
 Ketogenic diet; from 12 months,Ketogenic diet,Ketogenic diet,
 Lmna G609G/G609G progeria,Lmna,Lmna,
-Lmna G609G/G609G progeria & Methionine restriction,Lmna,Lmna,Methionine
+Lmna G609G/G609G progeria & Methionine restriction,"Lmna, Methionine",Lmna,Methionine
 SRT2104; 1330ppm,SRT2104,SRT2104,
 Metformin 1%; every other week,Metformin,Metformin,
 Metformin 1%; 2 consecutive weeks per month,Metformin,Metformin,
@@ -64,8 +64,9 @@ BubR1 +/L1002P,BubR1,BubR1,
 BubR1 H/L1002P,BubR1,BubR1,
 BubR1 H/H,BubR1,BubR1,
 Ercc1 delta/- progeria,Ercc1,Ercc1,
-Ercc1 delta/- progeria & CR; 30%,"Ercc1, CR","Ercc1, CR",
+Ercc1 delta/- progeria & CR; 30%,"Ercc1, CR",Ercc1,CR
 Ercc1 delta/- progeria & Rapamycin; 14ppm,"Ercc1, Rapa",Ercc1,Rapa
+Ercc1 delta/- progeria & Hypoxia; 11%,"Ercc1, Hypoxia",Ercc1,Hypoxia
 Akt1 +/-,Akt1,Akt1,
 "D-Glucosamine; 10,000ppm",D-Glucosamine,D-Glucosamine,
 HF diet; 60% kcal fat/g,HF,HF,
