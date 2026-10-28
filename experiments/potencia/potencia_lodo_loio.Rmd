@@ -150,7 +150,7 @@ for (correlation_LOIO in corr_LOIO) {
       r_LODO = mean(R_LODO_LOIO$R_LODO),
       r_LOIO = mean(R_LODO_LOIO$R_LOIO),
       n_LB_under_zero = LB_under_zero,
-      potencia = 1-LB_under_zero/1000
+      taxa_rejeicao = 1-LB_under_zero/1000
     ))
   }
 }
