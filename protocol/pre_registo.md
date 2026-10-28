@@ -27,11 +27,16 @@ As there are many interventions with minor changes (e.g. rapamycin regimes or di
 - LOIO exclui o dataset D e, nos outros datasets, a família F e as que partilham componente com ela (por exemplo, para a RaAc saem também a Rapamycin e a Acarbose). Para diferença é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez). 
 Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
 
-Vão ser usadas 56 grupos de intervenções.
-- 56: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma ou mais famílias (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose", embora saia do treino quando se prevê ou a "Rapamycin" ou "Acarbose")
+Vão ser usadas 57 grupos de intervenções.
+- 57: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma família, podendo pertencer um ou dois componentes (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose", embora saia do treino quando se prevê ou a "Rapamycin" ou "Acarbose").
+- Apenas uma das 57 famílias não tem controlo (Ercc1 + Hypoxia), por isso esta fica fora dos 56 folds, embora continue no treino do modelo.
 
 ## Regra de decisão
--Intervenções com os mesmos componentes principais são agrupadas numa única família, mesmo quando diferem na dose ou duração (por exemplo, 17aE2_16m e 17aE2_20m). As combinações de dois componentes constituem uma única família, mantendo-se cada componente identificado separadamente. A tabela com as intervenções distribuídas em famílias e componentes é `protocol/interventions_families_components.csv`
+-Intervenções com os mesmos componentes principais são agrupadas numa única família, mesmo quando diferem na dose ou duração (por exemplo, 17aE2_16m e 17aE2_20m). As combinações de dois componentes constituem uma única família, mantendo-se cada componente identificado separadamente. A tabela com as intervenções distribuídas em famílias e componentes é `protocol/interventions_families_components.csv`.
+
+As variantes pertencentes à mesma família serão agregadas num único ponto através de uma média simples dos respetivos efeitos, de modo a obter uma estimativa única do efeito no tempo de vida por família
+
+O efeito de cada intervenção na longevidade será quantificado através do hazard ratio (HR), estimado por um modelo de Cox, comparando os animais tratados com os respetivos controlos dentro de cada dataset. O HR será utilizado como medida de referência do efeito real da intervenção na longevidade, para avaliar a correlação entre os efeitos previstos pelos relógios e os efeitos observados na sobrevivência.
 
 -Para cada família, será calculado um único efeito no tempo de vida, que servirá de referência para avaliar a associação entre os efeitos previstos pelos relógios e os efeitos reais das intervenções.
 
