@@ -1,0 +1,41 @@
+# Adding Families and Components to Metadata
+
+## #1 Load Packages
+
+```{r}
+library(here)
+library(stringr)
+```
+
+## #2 Import Data
+
+```{r}
+metadata = read.csv(here("results","table_Zenodo_full.csv"))
+
+ifc = read.csv(here("protocol","interventions_families_components.csv"),
+               na.strings = "")
+```
+
+## #3 Add Family and Component Columns
+
+```{r}
+column_family = ifc$Family[match(metadata$Intervention, ifc$Intervention)]
+column_component1 = ifc$Component1[match(metadata$Intervention, ifc$Intervention)]
+column_component2 = ifc$Component2[match(metadata$Intervention, ifc$Intervention)]
+
+column_family = ifc$Family[match(metadata$Intervention, ifc$Intervention)]
+
+table = cbind(metadata[,1:11],
+              column_family,
+              column_component1,
+              column_component2,
+              metadata[,11:ncol(metadata)])
+
+table = as.data.frame(table)
+```
+
+## #4 Export File
+
+```{r}
+write.csv(table, here("results", "table_Zenodo_complete.csv"))
+```
