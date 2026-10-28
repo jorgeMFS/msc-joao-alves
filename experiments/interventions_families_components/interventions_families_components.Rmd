@@ -37,5 +37,7 @@ table = as.data.frame(table)
 ## #4 Export File
 
 ```{r}
-write.csv(table, here("results", "table_Zenodo_complete.csv"))
+write.csv(table,
+          here("results", "table_Zenodo_complete.csv"),
+          row.names = FALSE)
 ```
