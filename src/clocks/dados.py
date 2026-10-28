@@ -26,7 +26,7 @@ def carregar_metadados_amostras(path=None):
     Entregável da semana 1: results/tabela_amostras.csv
     """
     if path is None:
-        path=RAW/"results"/"table_Zenodo.csv"
+        path=RAW/"results"/"table_Zenodo_complete.csv"
     df=pd.read_csv(path)
     return df
 
@@ -39,7 +39,8 @@ def carregar_sobrevivencia(path=None):
     return df
 
 
-def construir_tabela_intervencoes(amostras, sobrevivencia, definicao="composto"):
+def construir_tabela_intervencoes(amostras, sobrevivencia, definicao="Family"):
+
     """Uma linha por intervenção, com os dois lados.
 
     `definicao` fixa o N do LOIO e não pode mudar depois de escrita no pré-registo:
@@ -51,4 +52,7 @@ def construir_tabela_intervencoes(amostras, sobrevivencia, definicao="composto")
              hr_m, hr_f, e os respetivos erros padrão.
     Entregável da semana 1: results/intervencoes.csv
     """
-    raise NotImplementedError("semana 1")
+    df = pd.merge(amostras, sobrevivencia, on=definicao)
+    raise NotImplementedError
+
+#construir_tabela_intervencoes(carregar_metadados_amostras(), carregar_sobrevivencia())
