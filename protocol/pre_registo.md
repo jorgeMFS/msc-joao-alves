@@ -31,7 +31,7 @@ Vão ser usadas 56 grupos de intervenções.
 - 56: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma ou mais famílias (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose", embora saia do treino quando se prevê ou a "Rapamycin" ou "Acarbose")
 
 ## Regra de decisão
--Intervenções com os mesmos componentes principais são agrupadas numa única família, mesmo quando diferem na dose ou duração (por exemplo, 17aE2_16m e 17aE2_20m). As combinações de dois componentes constituem uma única família, mantendo-se cada componente identificado separadamente.
+-Intervenções com os mesmos componentes principais são agrupadas numa única família, mesmo quando diferem na dose ou duração (por exemplo, 17aE2_16m e 17aE2_20m). As combinações de dois componentes constituem uma única família, mantendo-se cada componente identificado separadamente. A tabela com as intervenções distribuídas em famílias e componentes é `protocol/interventions_families_components.csv`
 
 -Para cada família, será calculado um único efeito no tempo de vida, que servirá de referência para avaliar a associação entre os efeitos previstos pelos relógios e os efeitos reais das intervenções.
 
@@ -61,7 +61,7 @@ Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse 
 
 ### Tabela 2 — Potência estatística
 
-| nint | corr_LOIO_Lifespan | corr_between_models | n_LB_under_zero | potencia |
+| nint | corr_LOIO_Lifespan | corr_between_models | n_LB_under_zero | taxa_rejeicao |
 |---:|---:|---:|---:|---:|
 | 56 | 0.36 | 0.80 | 272 | 0.728 |
 | 56 | 0.36 | 0.90 | 53 | 0.947 |
@@ -72,99 +72,3 @@ Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse 
 | 56 | 0.53 | 0.80 | 951 | 0.049 |
 | 56 | 0.53 | 0.90 | 941 | 0.059 |
 | 56 | 0.53 | 0.95 | 930 | 0.070 |
-
-Rows com corr_LOIO_Lifespan = 0.53 são a taxa de falsos positivos, não de potência
-
----
-
-**Treatments to be tested**
-
-**Intervention**                                      **Family**
-
-17aE2_16m                                             17aE2
-17aE2_20m                                             17aE2
-BD                                                    BD
-bGPA                                                  bGPA
-Cana                                                  Cana
-Capt                                                  Capt
-CC                                                    CC
-DMAG                                                  DMAG
-GGA                                                   GGA
-Leu                                                   Leu
-MIF098                                                MIF098
-Min                                                   Min
-MitoQ                                                 MitoQ
-NR                                                    NR
-PB125                                                 PB125
-RaAc_9m                                               Acarbose, Rapa
-RaAc_16m                                              Acarbose, Rapa
-Rapa_Continuous                                       Rapa
-Sul                                                   Sul
-Syr                                                   Syr
-
-Protandim; 1200ppm                                    Protandim
-SRT2104; 1330ppm                                      SRT2104
-Metformin 1%; every other week                        Metformin
-Metformin 1%; 2 consecutive weeks per month           Metformin
-Spermidine; 3mM                                       Spermidine
-Acarbose; 1000ppm                                     Acarbose
-D-Glucosamine; 10,000ppm                              D-Glucosamine
-Rapamycin; 14ppm                                      Rapa
-Rapamycin; 42ppm                                      Rapa
-17-alpha-estradiol; 14.4ppm                           17aE2
-
-CR; 20% from 6m                                       CR
-CR; 30% from 5 weeks                                  CR
-CR; 40%                                               CR
-CR; 40% from 2m                                       CR
-CR; 40% from 6m                                       CR
-CR, 12h during day; 30%                               CR
-CR, 12h during night; 30%                             CR
-CR, 2h during day; 30%                                CR
-CR, 2h during night; 30%                              CR
-CR, spread; 30%                                       CR
-HF diet + CR; 30% from 5 weeks                        HF diet; CR
-HF diet; 60% kcal fat/g                               HF diet
-HF diet; from 12 months                               HF diet
-HF diet; from 5 weeks                                 HF diet
-Ketogenic diet; from 12 months                        Ketogenic diet
-Late-life CR; 40%                                     CR
-Low amino acid diet; from 6 months                    Low amino acid diet
-Low BCAA diet                                         Low BCAA diet
-Low isoleucine diet; from 6 months                    Low isoleucine diet
-
-HF diet & exercise; from 5 weeks                      HF diet; Exercise
-
-Exercise; from 5 weeks                                Exercise
-
-Akt1 +/-                                              Akt1
-Ames dwarf                                            Ames dwarf
-BubR1 +/L1002P                                        BubR1
-BubR1 H/H                                             BubR1
-BubR1 H/L1002P                                        BubR1
-Dgat1 -/-                                             Dgat1
-Ercc1 delta/- progeria                                Ercc1
-G2 Terc -/-                                           Terc
-GHRKO                                                 GHRKO
-Little                                                Little
-Lmna G609G/G609G progeria                             Lmna
-Lmna LCS/LCS                                          Lmna
-Myc +/-                                               Myc
-Nqo1 and Cyb5r3 overexpression                        Nqo1; Cyb5r3
-PAPP-A KO                                             PAPP-A
-S6K1 -/-                                              S6K1
-Sirt1 -/-                                             Sirt1
-Slc6a6 -/-                                            Slc6a6
-Snell dwarf                                           Snell dwarf
-nmrHas2 overexpression                                nmrHas2
-Kl KO                                                 Kl
-
-G2 Terc -/- & Rapamycin; 42ppm                       Terc; Rapamycin
-Ercc1 delta/- progeria & Rapamycin; 14ppm            Ercc1; Rapamycin
-
-Sirt1 -/- & CR; 40% from 2m                          Sirt1; CR
-Sirt1 +/- & CR; 40% from 2m                          Sirt1; CR
-Lmna G609G/G609G progeria & Methionine restriction   Lmna; Methionine restriction
-Ercc1 delta/- progeria & CR; 30%                     Ercc1; CR
-
-Ercc1 delta/- progeria & Hypoxia; 11%                Ercc1; Hypoxia - É retirado porque não tem controlos
