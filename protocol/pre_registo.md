@@ -18,7 +18,7 @@ r ≈ 0.36 (LODO/Lifespan)
 
 ## Definição de intervenção
 
-As there are many interventions with minor changes (e.g. rapamycin regimes or diet), each group will only count as a single family. Following this step, this will result in 56 families (with control).
+As there are many interventions with minor changes (e.g. rapamycin regimes or diet), each group will only count as a single family. Following this step, this will result in 57 families, however, the dataset containing Ercc1+Hypoxia doesn't have any controls, and this intervention is withdrawn from LOIO when the model is predicting a family with Ercc1. Ercc+1Hypoxia is still present in the model training.
 
 
 
@@ -74,10 +74,10 @@ Rows com corr_LOIO_Lifespan = 0.53 são a taxa de falsos positivos, não de pot�
 
 **Treatments to be tested**
 
-**Intervention**                                      **Family** (25)
+**Intervention**                                      **Family**
 
-17aE2_16m                                             17-alpha-estradiol
-17aE2_20m                                             17-alpha-estradiol
+17aE2_16m                                             17aE2
+17aE2_20m                                             17aE2
 BD                                                    BD
 bGPA                                                  bGPA
 Cana                                                  Cana
@@ -91,9 +91,9 @@ Min                                                   Min
 MitoQ                                                 MitoQ
 NR                                                    NR
 PB125                                                 PB125
-RaAc_9m                                               Acarbose, Rapamycin
-RaAc_16m                                              Acarbose, Rapamycin
-Rapa_Continuous                                       Rapamycin
+RaAc_9m                                               Acarbose, Rapa
+RaAc_16m                                              Acarbose, Rapa
+Rapa_Continuous                                       Rapa
 Sul                                                   Sul
 Syr                                                   Syr
 
@@ -104,9 +104,9 @@ Metformin 1%; 2 consecutive weeks per month           Metformin
 Spermidine; 3mM                                       Spermidine
 Acarbose; 1000ppm                                     Acarbose
 D-Glucosamine; 10,000ppm                              D-Glucosamine
-Rapamycin; 14ppm                                      Rapamycin
-Rapamycin; 42ppm                                      Rapamycin
-17-alpha-estradiol; 14.4ppm                           17-alpha-estradiol
+Rapamycin; 14ppm                                      Rapa
+Rapamycin; 42ppm                                      Rapa
+17-alpha-estradiol; 14.4ppm                           17aE2
 
 CR; 20% from 6m                                       CR
 CR; 30% from 5 weeks                                  CR
