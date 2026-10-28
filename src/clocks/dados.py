@@ -53,8 +53,6 @@ def construir_tabela_intervencoes(amostras, sobrevivencia, definicao="Family"):
     Entregável da semana 1: results/intervencoes.csv
     """
     df = pd.merge(amostras, sobrevivencia, on=definicao)
-    return df
-
-print(df)
+    raise NotImplementedError
 
 #construir_tabela_intervencoes(carregar_metadados_amostras(), carregar_sobrevivencia())
