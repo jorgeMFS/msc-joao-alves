@@ -31,6 +31,11 @@ Vão ser usadas 56 grupos de intervenções.
 - 56: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma ou mais famílias (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose", embora saia do treino quando se prevê ou a "Rapamycin" ou "Acarbose")
 
 ## Regra de decisão
+-Intervenções com os mesmos componentes principais são agrupadas numa única família, mesmo quando diferem na dose ou duração (por exemplo, 17aE2_16m e 17aE2_20m). As combinações de dois componentes constituem uma única família, mantendo-se cada componente identificado separadamente.
+
+-Para cada família, será calculado um único efeito no tempo de vida, que servirá de referência para avaliar a associação entre os efeitos previstos pelos relógios e os efeitos reais das intervenções.
+
+
 Para CI 90% = [X,Y]:
 - Se X > 0 : O relógio de mortalidade perde desempenho quando não vê a intervenção
 - Se X < 0 : Não se pode concluir que o relógio de mortalidade perde desempenho quando não vê a intervenção
