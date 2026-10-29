@@ -8,11 +8,36 @@ tese denuncia continua presente.
 from sklearn.model_selection import GroupKFold
 
 
-def loio_splits(sample_table, group_col="intervention"):
-    """Um fold por intervenção. sample_table tem uma linha por amostra."""
-    groups = sample_table[group_col].values
-    n_groups = sample_table[group_col].nunique()
-    return GroupKFold(n_splits=n_groups).split(sample_table, groups=groups)
+def loio_splits(sample_table, group_col=["Dataset","Family","Component1","Component2"]):
+
+    folds = sample_table[["Source", "Family", "Component1", "Component2"]].drop_duplicates()
+
+    test_fold = {}
+    train_fold= {}
+
+
+    for row in range(len(folds)):
+        dataset = folds.iloc[row]["Source"]
+        family = folds.iloc[row]["Family"]
+        comp1 = folds.iloc[row]["Component1"]
+        comp2 = folds.iloc[row]["Component2"]
+
+        test_fold[row] = sample_table[(sample_table["Source"] == dataset) |
+                                    (sample_table["Family"] == family) |
+                                    (sample_table["Component1"] == comp1) |
+                                    (sample_table["Component1"] == comp2) |
+                                    (sample_table["Component2"] == comp1) |
+                                    (sample_table["Component2"] == comp2) |
+                                    ]
+
+        train_fold[row] = sample_table[~(
+            (sample_table["Source"] == dataset) |
+            (sample_table["Family"] == family) |
+            (sample_table["Component1"] == comp1) |
+            (sample_table["Component1"] == comp2) |
+            (sample_table["Component2"] == comp1) |
+            (sample_table["Component2"] == comp2)
+            )]
 
 
 def build_mortality_labels(train_samples, survival_table):
