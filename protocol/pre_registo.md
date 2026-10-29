@@ -36,7 +36,7 @@ Vão ser usadas 57 grupos de intervenções.
 
 As variantes pertencentes à mesma família serão agregadas num único ponto através de uma média simples dos respetivos efeitos, de modo a obter uma estimativa única do efeito no tempo de vida por família
 
-O efeito de cada intervenção na longevidade será quantificado através do hazard ratio (HR), estimado por um modelo de Cox, comparando os animais tratados com os respetivos controlos dentro de cada dataset. O HR será utilizado como medida de referência do efeito real da intervenção na longevidade, para avaliar a correlação entre os efeitos previstos pelos relógios e os efeitos observados na sobrevivência.
+O efeito de cada intervenção na longevidade será quantificado através do Cox Model, estimado por um modelo de Cox, comparando os animais tratados com os respetivos controlos dentro de cada dataset. O Cox será utilizado como medida de referência do efeito real da intervenção na longevidade, para avaliar a correlação entre os efeitos previstos pelos relógios e os efeitos observados na sobrevivência.
 
 -Para cada família, será calculado um único efeito no tempo de vida, que servirá de referência para avaliar a associação entre os efeitos previstos pelos relógios e os efeitos reais das intervenções.
 
