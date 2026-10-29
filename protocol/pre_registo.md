@@ -29,7 +29,7 @@ Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortal
 
 Vão ser usadas 57 grupos de intervenções.
 - 57: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma família, podendo pertencer um ou dois componentes (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose", embora saia do treino quando se prevê ou a "Rapamycin" ou "Acarbose").
-- Apenas uma das 57 famílias não tem controlo (Ercc1 + Hypoxia), por isso esta fica fora dos 56 folds, embora continue no treino do modelo.
+- Apenas uma das 57 famílias não tem controlo (Ercc1 + Hypoxia), por isso esta fica fora dos 81 folds, embora continue no treino do modelo.
 
 ## Regra de decisão
 -Intervenções com os mesmos componentes principais são agrupadas numa única família, mesmo quando diferem na dose ou duração (por exemplo, 17aE2_16m e 17aE2_20m). As combinações de dois componentes constituem uma única família, mantendo-se cada componente identificado separadamente. A tabela com as intervenções distribuídas em famílias e componentes é `protocol/interventions_families_components.csv`.
