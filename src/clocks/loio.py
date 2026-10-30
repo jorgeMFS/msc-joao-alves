@@ -11,6 +11,7 @@ from sklearn.model_selection import GroupKFold
 def loio_splits(sample_table, group_col=["Dataset","Family","Component1","Component2"]):
 
     folds = sample_table[["Source", "Family", "Component1", "Component2"]].drop_duplicates()
+    folds = folds[(folds["Family"] != "Control") & (folds["Family"] != "Ercc1, Hypoxia")]
 
     test_fold = {}
     train_fold= {}
