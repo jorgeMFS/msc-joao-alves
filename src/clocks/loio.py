@@ -24,7 +24,7 @@ def loio_splits(sample_table, group_col=["Dataset","Family","Component1","Compon
         comp1 = folds.iloc[row]["Component1"]
         comp2 = folds.iloc[row]["Component2"]
 
-        test_fold[row] = sample_table[(sample_table["Source"] == dataset)5]
+        test_fold[row] = sample_table[(sample_table["Source"] == dataset)]
 
         train_fold[row] = sample_table[~(
             (sample_table["Source"] == dataset) |
