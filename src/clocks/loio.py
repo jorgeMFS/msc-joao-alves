@@ -11,7 +11,7 @@ from sklearn.model_selection import GroupKFold
 def loio_splits(sample_table, group_col=["Dataset","Family","Component1","Component2"]):
 
     folds = sample_table[["Source", "Family", "Component1", "Component2"]].drop_duplicates()
-    folds = folds[(folds["Family"] != "Control") & (folds["Family"] != "Ercc1, Hypoxia")]
+    folds = folds[(folds["Family"] != "Control") & (folds["Source"] != "GSE219203")]
 
     test_fold = {}
     train_fold= {}
@@ -24,14 +24,7 @@ def loio_splits(sample_table, group_col=["Dataset","Family","Component1","Compon
         comp1 = folds.iloc[row]["Component1"]
         comp2 = folds.iloc[row]["Component2"]
 
-        test_fold[row] = sample_table[((sample_table["Source"] == dataset) |
-                                    (sample_table["Family"] == family) |
-                                    (sample_table["Component1"] == comp1) |
-                                    (sample_table["Component1"] == comp2) |
-                                    (sample_table["Component2"] == comp1) |
-                                    (sample_table["Component2"] == comp2)) &
-                                    (sample_table["Family"] != "Ercc1, Hypoxia")
-                                    ]
+        test_fold[row] = sample_table[(sample_table["Source"] == dataset)5]
 
         train_fold[row] = sample_table[~(
             (sample_table["Source"] == dataset) |
@@ -48,8 +41,9 @@ def loio_splits(sample_table, group_col=["Dataset","Family","Component1","Compon
 
         split = (frozenset(train_idx), frozenset(test_idx))
 
-        if split not in folds_loio:
-            folds_loio.append(split)
+        #if split not in folds_loio:
+        #    folds_loio.append(split)
+        folds_loio.append(split)
 
     for fold in folds_loio:
         train_arr = np.array(sorted(fold[0]))
@@ -57,6 +51,7 @@ def loio_splits(sample_table, group_col=["Dataset","Family","Component1","Compon
         folds_final.append((train_arr, test_arr))
 
     return folds_final
+
 
 
 def build_mortality_labels(train_samples, survival_table):
