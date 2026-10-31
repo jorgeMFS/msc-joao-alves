@@ -6,6 +6,7 @@ de treino apenas. Se se usarem os rótulos publicados pelo tAge, a fuga que a
 tese denuncia continua presente.
 """
 from sklearn.model_selection import GroupKFold
+import numpy as np
 
 
 def loio_splits(sample_table, group_col=["Dataset","Family","Component1","Component2"]):
