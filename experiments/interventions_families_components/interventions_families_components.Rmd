@@ -23,13 +23,13 @@ Family = ifc$Family[match(metadata$Intervention, ifc$Intervention)]
 Component1 = ifc$Component1[match(metadata$Intervention, ifc$Intervention)]
 Component2 = ifc$Component2[match(metadata$Intervention, ifc$Intervention)]
 
-column_family = ifc$Family[match(metadata$Intervention, ifc$Intervention)]
-
 table = cbind(metadata[,1:11],
               Family,
               Component1,
               Component2,
               metadata[,12:ncol(metadata)])
+
+stopifnot(!any(is.na(table$Family)))
 
 table = as.data.frame(table)
 ```
