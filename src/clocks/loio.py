@@ -8,7 +8,7 @@ tese denuncia continua presente.
 import numpy as np
 
 
-def loio_splits(sample_table, group_col=["Dataset","Family","Component1","Component2"]):
+def loio_splits(sample_table, group_col=["Source","Family","Component1","Component2"]):
 
     folds = sample_table[["Source", "Family", "Component1", "Component2"]].drop_duplicates()
     folds = folds[(folds["Family"] != "Control") & (folds["Source"] != "GSE219203")]
