@@ -5,7 +5,6 @@ DENTRO de cada fold, a partir das curvas de sobrevivência das intervenções
 de treino apenas. Se se usarem os rótulos publicados pelo tAge, a fuga que a
 tese denuncia continua presente.
 """
-from sklearn.model_selection import GroupKFold
 import numpy as np
 
 
