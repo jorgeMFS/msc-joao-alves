@@ -17,6 +17,6 @@ def lodo_splits(sample_table, group_col="Source"):
         test_dataset = sample_table[group_col].iloc[test_idx].iloc[0]
 
         if test_dataset in valid_datasets:
-            folds_final[len(folds_final)] = (train_idx, test_idx)
+            folds_final[test_dataset] = (train_idx, test_idx)
 
     return folds_final
