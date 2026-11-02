@@ -10,13 +10,13 @@ def lodo_splits(sample_table, group_col="Source"):
     # Only datasets with both controls and treated samples
     valid_datasets = control_datasets & treated_datasets
 
-    folds_final = []
+    folds_final = {}
 
     for train_idx, test_idx in LeaveOneGroupOut().split(sample_table, groups=sample_table[group_col]):
 
         test_dataset = sample_table[group_col].iloc[test_idx].iloc[0]
 
         if test_dataset in valid_datasets:
-            folds_final.append((train_idx, test_idx))
+            folds_final[len(folds_final)] = (train_idx, test_idx)
 
     return folds_final

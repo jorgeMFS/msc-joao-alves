@@ -16,7 +16,7 @@ def loio_splits(sample_table, group_col=["Source","Family","Component1","Compone
     test_fold = {}
     train_fold= {}
     folds_loio = []
-    folds_final = []
+    folds_final = {}
 
     for row in range(len(folds)):
         dataset = folds.iloc[row]["Source"]
@@ -41,14 +41,12 @@ def loio_splits(sample_table, group_col=["Source","Family","Component1","Compone
 
         split = (frozenset(train_idx), frozenset(test_idx))
 
-        #if split not in folds_loio:
-        #    folds_loio.append(split)
         folds_loio.append(split)
 
     for fold in folds_loio:
         train_arr = np.array(sorted(fold[0]))
         test_arr = np.array(sorted(fold[1]))
-        folds_final.append((train_arr, test_arr))
+        folds_final[len(folds_final)] = (train_arr, test_arr)
 
     return folds_final
 
