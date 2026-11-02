@@ -25,7 +25,7 @@ As there are many interventions with minor changes (e.g. rapamycin regimes or di
 ## Esquema de validação
 - LODO tira do treino um dataset inteiro.
 - LOIO exclui o dataset D e, nos outros datasets, a família F e as que partilham componente com ela (por exemplo, para a RaAc saem também a Rapamycin e a Acarbose). Para diferença é usado o intervalo a 90%, calculado por bootstrap das famílias (sorteadas com reposição e recalculada a diferença de cada vez). 
-Hiperparâmetros afinados dentro de cada fold. Os rótulos do relógio de mortalidade são reconstruídos dentro de cada fold sem usar a curva de sobrevivência da intervenção retida.
+Hiperparâmetros afinados dentro de cada fold. Usamos o Expected_Hazard.log10 do paper, já que este depende apenas do grupo de cada amostra (e as amostras F já saem do treino)
 
 Vão ser usadas 57 grupos de intervenções.
 - 57: corresponde a todas as famílias, ou seja, cada intervenção pertence a uma família, podendo pertencer um ou dois componentes (e.g. RaAc não percence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose", embora saia do treino quando se prevê ou a "Rapamycin" ou "Acarbose").
@@ -36,9 +36,11 @@ Vão ser usadas 57 grupos de intervenções.
 
 As variantes pertencentes à mesma família serão agregadas num único ponto através de uma média simples dos respetivos efeitos dos grupos (mesmo dataset, intervenção, estirpe e sexo), de modo a obter uma estimativa única do efeito no tempo de vida por família. O efeito previsto pelos relógios é agregado da mesma forma que os controlos.
 
-O efeito de cada intervenção na longevidade será quantificado através do log(Estimate.Lifespan.99.9th_percentile_tratados / Estimate.Lifespan.99.9th_percentile_controlos), comparando os animais tratados com os respetivos controlos (mesmo dataset, estirpe e sexo, com tecido e idade como covariáveis).
+O efeito de cada intervenção na longevidade será quantificado através do log(Estimate.Lifespan.99.9th_percentile_tratados / Estimate.Lifespan.99.9th_percentile_controlos), comparando os animais tratados com os respetivos controlos (mesmo dataset, estirpe e sexo). O ΔtAge é calculado nos mesmos grupos e agregado da mesma forma que o efeito no tempo de vida.
 
-Os 5 controlos do dataset `GSE149029` têm 1092 dias como máximo observado
+Vão ser utilizadas como covariáveis o tecido e idade no efeito do relógio.
+
+Os 5 controlos do dataset `GSE149029` têm 1092 dias como máximo observado (Dollé et al. 2011 https://doi.org/10.3402/pba.v1i0.7219)
 
 -Para cada família, será calculado um único efeito no tempo de vida, que servirá de referência para avaliar a associação entre os efeitos previstos pelos relógios e os efeitos reais das intervenções.
 
