@@ -34,16 +34,18 @@ Vão ser usadas 57 grupos de intervenções.
 ## Regra de decisão
 -Intervenções com os mesmos componentes principais são agrupadas numa única família, mesmo quando diferem na dose ou duração (por exemplo, 17aE2_16m e 17aE2_20m). As combinações de dois componentes constituem uma única família, mantendo-se cada componente identificado separadamente. A tabela com as intervenções distribuídas em famílias e componentes é `protocol/interventions_families_components.csv`.
 
-As variantes pertencentes à mesma família serão agregadas num único ponto através de uma média simples dos respetivos efeitos, de modo a obter uma estimativa única do efeito no tempo de vida por família
+As variantes pertencentes à mesma família serão agregadas num único ponto através de uma média simples dos respetivos efeitos dos grupos (mesmo dataset, intervenção, estirpe e sexo), de modo a obter uma estimativa única do efeito no tempo de vida por família. O efeito previsto pelos relógios é agregado da mesma forma que os controlos.
 
-O efeito de cada intervenção na longevidade será quantificado através do Cox Model, estimado por um modelo de Cox, comparando os animais tratados com os respetivos controlos dentro de cada dataset. O Cox será utilizado como medida de referência do efeito real da intervenção na longevidade, para avaliar a correlação entre os efeitos previstos pelos relógios e os efeitos observados na sobrevivência.
+O efeito de cada intervenção na longevidade será quantificado através do log(Estimate.Lifespan.99.9th_percentile_tratados / Estimate.Lifespan.99.9th_percentile_controlos), comparando os animais tratados com os respetivos controlos (mesmo dataset, estirpe e sexo, com tecido e idade como covariáveis).
+
+Os 5 controlos do dataset `GSE149029` têm 1092 dias como máximo observado
 
 -Para cada família, será calculado um único efeito no tempo de vida, que servirá de referência para avaliar a associação entre os efeitos previstos pelos relógios e os efeitos reais das intervenções.
 
 
 Para CI 90% = [X,Y]:
-- Se X > 0 : O relógio de mortalidade perde desempenho quando não vê a intervenção
-- Se X < 0 : Não se pode concluir que o relógio de mortalidade perde desempenho quando não vê a intervenção
+- Se X > 0 : O relógio de mortalidade perde desempenho quando não vê a intervenção.
+- Se X < 0 : Não se pode concluir que o relógio de mortalidade perde desempenho quando não vê a intervenção.
 
 ## Análises secundárias
 Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse Molenberghs, só trial level, não há dados individuais emparelhados). Baseline aleatório e transcriptoma completo regularizado.
