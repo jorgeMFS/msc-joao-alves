@@ -41,12 +41,12 @@ def loio_splits(sample_table, group_col=["Source","Family","Component1","Compone
 
         split = (frozenset(train_idx), frozenset(test_idx))
 
-        folds_loio.append(split)
+        folds_loio.append(((dataset, family), split))
 
-    for fold in folds_loio:
+    for key, fold in folds_loio:
         train_arr = np.array(sorted(fold[0]))
         test_arr = np.array(sorted(fold[1]))
-        folds_final[len(folds_final)] = (train_arr, test_arr)
+        folds_final[key] = (train_arr, test_arr)
 
     return folds_final
 
