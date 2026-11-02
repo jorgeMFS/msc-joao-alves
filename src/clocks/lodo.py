@@ -4,15 +4,19 @@ from sklearn.model_selection import LeaveOneGroupOut
 
 def lodo_splits(sample_table, group_col="Source"):
 
+    control_datasets = set(sample_table[sample_table["Family"] == "Control"][group_col])
+    treated_datasets = set(sample_table[sample_table["Family"] != "Control"][group_col])
+
+    # Only datasets with both controls and treated samples
+    valid_datasets = control_datasets & treated_datasets
+
     folds_final = []
 
-    for train_idx, test_idx in LeaveOneGroupOut().split(sample_table, groups = sample_table[group_col]):
-        folds_final.append((train_idx, test_idx))
+    for train_idx, test_idx in LeaveOneGroupOut().split(sample_table, groups=sample_table[group_col]):
+
+        test_dataset = sample_table[group_col].iloc[test_idx].iloc[0]
+
+        if test_dataset in valid_datasets:
+            folds_final.append((train_idx, test_idx))
 
     return folds_final
-
-
-def build_mortality_labels(train_samples, survival_table):
-    """Rótulo de mortalidade para as amostras de treino, usando só as
-    intervenções presentes em train_samples. A implementar."""
-    raise NotImplementedError
