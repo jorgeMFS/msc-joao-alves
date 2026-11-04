@@ -8,7 +8,7 @@ tese denuncia continua presente.
 import numpy as np
 
 
-def loio_splits(sample_table, group_col=["Source","Family","Component1","Component2"]):
+def loio_splits(sample_table):
 
     folds = sample_table[["Source", "Family", "Component1", "Component2"]].drop_duplicates()
     folds = folds[(folds["Family"] != "Control") & (folds["Source"] != "GSE219203")]
@@ -54,10 +54,3 @@ def loio_splits(sample_table, group_col=["Source","Family","Component1","Compone
         folds_final[key] = (train_arr, test_arr)
 
     return folds_final
-
-
-
-def build_mortality_labels(train_samples, survival_table):
-    """Rótulo de mortalidade para as amostras de treino, usando só as
-    intervenções presentes em train_samples. A implementar."""
-    raise NotImplementedError
