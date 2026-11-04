@@ -1,4 +1,4 @@
-# Semana 07 (2026-11-26 a 2026-11-01)
+# Semana 07 (2026-10-26 a 2026-11-01)
 
 **Horas dedicadas:** ~10 h · **Bloco do plano:** LOIO
 
@@ -47,7 +47,7 @@ Estrutura inicial da tese, assim como 2.1 Aging
 ## 4. Números da semana
 
 LOIO: 81 folds
-LODO: 63 folds
+LODO: 43 folds
 
 ## 5. Bloqueado
 
