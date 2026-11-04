@@ -1,9 +1,7 @@
 """Leave one intervention out.
-
-Ponto crítico. O rótulo do relógio de mortalidade tem de ser construído
-DENTRO de cada fold, a partir das curvas de sobrevivência das intervenções
-de treino apenas. Se se usarem os rótulos publicados pelo tAge, a fuga que a
-tese denuncia continua presente.
+Os rótulos devem ser reconstruídos a partir das curvas de sobrevivência
+das intervenções disponíveis, utilizando apenas informação dos dados de treino em cada fold.
+Não devem ser utilizados diretamente os rótulos publicados pelo tAge.
 """
 import numpy as np
 
