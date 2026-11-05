@@ -1,7 +1,9 @@
 """Leave one intervention out.
-Os rótulos devem ser reconstruídos a partir das curvas de sobrevivência
-das intervenções disponíveis, utilizando apenas informação dos dados de treino em cada fold.
-Não devem ser utilizados diretamente os rótulos publicados pelo tAge.
+
+O rótulo do relógio de mortalidade é o Expected_Hazard.log10 publicado,
+sem ser reconstruído em cada fold. Cada rótulo vem da curva de sobrevivência
+do grupo da própria amostra (espécie, estirpe, sexo e intervenção), e as
+amostras da família F e das que partilham componente com ela já saem do treino.
 """
 import numpy as np
 
