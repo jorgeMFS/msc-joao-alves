@@ -20,23 +20,39 @@ r ≈ 0.36 (LODO/Lifespan)
 
 ## Definição de intervenção
 
-Como existem várias intervenções com pequenas alterações entre elas (como os regimes de rapamycin), cada grupo contará como uma única familia. Depois deste passo, vão resultar 57 famílias, no entanto, o dataset que contém Ercc1 + Hypoxia (GSE219203) não tem controlos, sendo assim o dataset inteiro é removido do LOIO.
+Como existem várias intervenções com pequenas alterações entre elas (como os regimes de rapamycin), cada grupo contará como uma única familia. Depois deste passo, vão resultar 57 famílias, no entanto, o dataset que contém Ercc1 + Hypoxia (GSE219203) não tem controlos, sendo assim torna-se impossível calcular o efeito da intervenção ou sequer o usar para o treino (porque o modelo é relativo), então o dataset inteiro é removido do LOIO.
+
+No fold Ercc1 do GSE149029, o LOIO exclui adicionalmente os samples com componente Ercc1 de outros datasets. Contudo, como os únicos outros samples Ercc1 estavam no GSE219203, que já está excluído do treino, essa exclusão adicional não altera o conjunto de treino. Assim, LODO e LOIO ficam iguais. Isto resulta em 37 pares iguais e 44 diferentes entre LOIO e LODO.
 
 ## Modelo e Hiperparâmetros
-Antes de treinar os modelos, as amostras foram divididas em sets de 90% treino e 10% teste com estratificação por espécie e categoria de intervenção (control, lifespan-shortening, neutral, or lifespan-extending). Para cada treino, são retirados os genes detetados em menos de 20% das amostras. São imputados os valores em falta pela mediana calculada no conjunto de treino com o SimpleImputer, seguindo-se o StandardScaler com with_mean e with_std também tunable durante o GridSearchCV
 
-- O modelo a ser usado é uma regressão linear Elastic Net, em que os hiperparâmetros (alpha, l1_ratio, with_mean e with_std) vão ser tuned através do GridSearchCV, usando GroupKFold = 5 por cada fold (por Source). Para escolher os melhores hiperparâmetros, é escolhido o modelo com maior R^2 médio das validações cruzadas.
+Para cada treino, são retirados os genes detetados em menos de 20% das amostras. São imputados os valores em falta pela mediana calculada no conjunto de treino com o SimpleImputer, seguindo-se o StandardScaler com with_mean = True e with_std = False.
+
+- O modelo a ser usado é uma regressão linear Elastic Net, em que os hiperparâmetros (alpha, l1_ratio) vão ser tuned através do GridSearchCV, usando GroupKFold = 5 por cada fold (por Source). Para escolher os melhores hiperparâmetros, é escolhido o modelo com maior R^2 médio das validações cruzadas. Os hiperparâmetros with_mean vai ter o valor True e scaler__with_std: False.
+
 - O grid usado no gridsearch vai ter o seguinte formato:
 -"alpha": np.logspace(-5, 2, 15)
 -"l1_ratio": [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1]
 
-Como o modelo é relativo e centrado, só entram no modelo famílias com controlos no mesmo dataset e tecido.
+Para o EN_Mortality_Rodents_Multitissue_scaleddiff.pkl os valores dos hiperparametros utilizados no modelo são:
+- scaler__with_mean: True
+- scaler__with_std: False
+- estimator__alpha: 0.005623413251903491
+- estimator__l1_ratio: 0.0
+
+Para o EN_Mortality_Rodents_Multitissue_scaleddiff.pkl os valores dos hiperparametros utilizados no modelo são:
+- scaler__with_mean: True
+- scaler__with_std: False
+- estimator__alpha: 0.023713737056616554
+- estimator__l1_ratio: 0.0
+
+A expressão e o alvo de cada amostra são centrados na mediana dos controlos do mesmo dataset e tecido, e no de mortalidade esses controlos têm de ter Expected_Hazard.
 
 Para o treino são usados os dados transcriptómicos correspondentes ao sample a ser treinado. Como para cada outcome é gerado um modelo diferente vão existir dois modelos.
 O relógio de mortalidade vai ter como outcome "Expected_Hazard.log10" 
 O relógio cronológico vai ter como outcome "Age.Chronological.Normalized_by_species_max_lifespan" apenas com controlos
 
-Os outcome "Age.Normalized_by_99.9th_percentile" e "Lifespan.species.max" apesar de serem preditos no paper, ficam de fora.
+Os outcomes "Age.Normalized_by_99.9th_percentile" e "Estimate.Lifespan.99.9th_percentile" apesar de serem preditos no paper, ficam de fora.
 
 Nos 36 pares em que o treino do LOIO é igual ao do LODO, é usado o mesmo modelo
 
@@ -48,6 +64,18 @@ Hiperparâmetros afinados dentro de cada fold. Usamos o Expected_Hazard.log10 do
 
 - Vão ser usados 57 grupos de intervenções, que corresponde a todas as famílias, ou seja, cada intervenção pertence a uma família, podendo pertencer a um ou dois componentes (e.g. RaAc não pertence a "Rapamycin" e a "Acarbose" mas sim a uma família "Rapamycin-Acarbose", embora saia do treino quando se prevê ou a "Rapamycin" ou "Acarbose").
 - Apenas uma das 57 famílias não tem controlo (Ercc1 + Hypoxia), por isso esta fica fora dos folds, por isso na prática ficam 56 famílias avaliáveis, totalizando 81 folds para o LOIO.
+
+
+
+## Treino do Relógio Cronológico
+
+Para o relógio cronológico, como o objetivo é prever a idade real do rato, independentemente de estar ou não a receber um tratamento, vão ser utilizados apenas os controlos, para que o modelo aprenda a relação entre a expressão genética e a idade durante o envelhecimento normal e depois podemos perceber se um tratamento altera essa relação.
+
+(Esta lógica não se aplica para o relógio de mortalidade porque o outcome do cronológico é a idade real que não varia tenha sido o rato submetido ou não a uma intervenção, no entanto os outcomes do relógio de mortalidade podem variar)
+
+## Treino do Relógio de Mortalidade
+
+Como existem 52 controlos nos datasets sem Expected_Hazard.log10, torna-se impossível usar estes samples no treino, no entanto como no dataset GSE149029 nenhum dos (5) controlos tem Expected_Hazard.log10, a sua exclusão impediria o teste das 3 famílias desse dataset. Sendo assim, no relógio de mortalidade, durante o treino são excluídos os 52 controlos sem Expected_Hazard, embora estes sejam mantidos para o teste.
 
 ## Regra de decisão
 - Intervenções com os mesmos componentes principais são agrupadas numa única família, mesmo quando diferem na dose ou duração (por exemplo, 17aE2_16m e 17aE2_20m). As combinações de dois componentes constituem uma única família, mantendo-se cada componente identificado separadamente. A tabela com as intervenções distribuídas em famílias e componentes é `protocol/interventions_families_components.csv`.
@@ -71,14 +99,15 @@ Para CI 90% = [X,Y]:
 
 Para verificar que uma potencial diferença de desempenho entre o LOIO e LODO não se deva ao LOIO excluir mais samples do treino que o LODO, vai ser também treinado um segundo LODO (controlo) retirando aleatoriamente o mesmo número de amostras tratadas que o LOIO perdeu.
 
-O modelo LODO_control a ser utilizado vai ter os hiperparâmetros do LODO depois do GridSearch. Essa remoção aleatória é feita entre famílias sem relação a F. Esta remoção vai ser repetida 10 vezes, gerando 10 modelos LOIO_control, em que o modelo é novamente treinado. Vai posteriormente ser feito um bootstrap (N = 10000), com emparelhamento entre famílias, em que é calculado o Δr = r_media_LODO_control - r_LOIO, gerando um CI90%. O r_media_LODO_control é a média dos valores de R obtidos para cada modelo de LODO_control.  
+O modelo LODO_control a ser utilizado vai ter os hiperparâmetros do LODO depois do GridSearch. Essa remoção aleatória é feita entre famílias sem relação a F. Esta remoção vai ser repetida 10 vezes, gerando 10 modelos LODO_control, em que o modelo é novamente treinado. Vai posteriormente ser feito um bootstrap (N = 10000), com emparelhamento entre famílias, em que é calculado o Δr = r_media_LODO_control - r_LOIO, gerando um CI90%. O r_media_LODO_control é a média dos valores de R obtidos para cada modelo de LODO_control.  
 
 Para CI 90% = [X,Y]:
-- Se Y > 0 : A perda de desempenho do modelo em LOIO não se deve ao efeito da dimensão de treino
-- Se Y =< 0 : Não podemos dizer que a perda de desempenho do modelo em LOIO não se deve ao efeito da dimensão de treino
+- Se X > 0 : A perda de desempenho do modelo em LOIO não se deve ao efeito da dimensão de treino
+- Se X =< 0 : Não podemos dizer que a perda de desempenho do modelo em LOIO não se deve ao efeito da dimensão de treino
   
 ## Comparação secundária entre os relógios
-Para testar se o relógio de mortalidade (LOIO) tem melhor desempenho que o relógio cronológico a estatística passa a ser:
+Para testar se o relógio de mortalidade (LOIO) tem melhor desempenho que o relógio cronológico (LODO) a estatística passa a ser:
+Nota: O R do relógio cronológico vem do LODO, já que para este relógio LODO=LOIO, pois foi treinado apenas com controlos, então para o teste excluem ambos apenas o dataset D.
 
 Δr = r_mortality - r_chronological
 
@@ -87,6 +116,9 @@ Depois passa-se a calcular o IC 90% através de um bootstrap (N = 10000) com emp
 Para CI 90% = [X,Y]:
 - Se X > 0 : O desempenho do relógio de mortalidade é superior ao desempenho do relógio cronológico
 - Se X =< 0 : Não podemos dizer que o desempenho do relógio de mortalidade  é superior ao desempenho do relógio cronológico
+
+- Se Y < 0.17 O desempenho do relógio de mortalidade é inferior ao publicado
+  
 
 ## Análises secundárias
 Dimorfismo sexual com canagliflozina. Substituição ao nível do ensaio (Buyse Molenberghs, só trial level, não há dados individuais emparelhados). Baseline aleatório e transcriptoma completo regularizado.
