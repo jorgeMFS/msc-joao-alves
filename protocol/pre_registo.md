@@ -20,9 +20,9 @@ r ≈ 0.36 (LODO/Lifespan)
 
 ## Definição de intervenção
 
-Como existem várias intervenções com pequenas alterações entre elas (como os regimes de rapamycin), cada grupo contará como uma única familia. Depois deste passo, vão resultar 57 famílias, no entanto, o dataset que contém Ercc1 + Hypoxia (GSE219203) não tem controlos, sendo assim torna-se impossível calcular o efeito da intervenção ou sequer o usar para o treino (porque o modelo é relativo), então o dataset inteiro é removido do LOIO.
+Como existem várias intervenções com pequenas alterações entre elas (como os regimes de rapamycin), cada grupo contará como uma única familia. Depois deste passo, vão resultar 57 famílias, no entanto, o dataset que contém Ercc1 + Hypoxia (GSE219203) não tem controlos, sendo assim torna-se impossível calcular o efeito da intervenção ou sequer o usar para o treino (porque o modelo é relativo), então o dataset inteiro é removido.
 
-No fold Ercc1 do GSE149029, o LOIO exclui adicionalmente os samples com componente Ercc1 de outros datasets. Contudo, como os únicos outros samples Ercc1 estavam no GSE219203, que já está excluído do treino, essa exclusão adicional não altera o conjunto de treino. Assim, LODO e LOIO ficam iguais. Isto resulta em 37 pares iguais e 44 diferentes entre LOIO e LODO.
+No fold Ercc1 do GSE149029, o LOIO exclui adicionalmente os samples com componente Ercc1 de outros datasets. Contudo, como os únicos outros samples Ercc1 estavam no GSE219203, que como já está excluído, essa exclusão adicional não altera o conjunto de treino. Assim, LODO e LOIO ficam iguais. Isto resulta em 37 pares iguais e 44 diferentes entre LOIO e LODO.
 
 ## Modelo e Hiperparâmetros
 
@@ -40,7 +40,7 @@ Para o EN_Mortality_Rodents_Multitissue_scaleddiff.pkl os valores dos hiperparam
 - estimator__alpha: 0.005623413251903491
 - estimator__l1_ratio: 0.0
 
-Para o EN_Mortality_Rodents_Multitissue_scaleddiff.pkl os valores dos hiperparametros utilizados no modelo são:
+Para o EN_Chronoage_Rodents_Multitissue_scaleddiff.pkl os valores dos hiperparametros utilizados no modelo são:
 - scaler__with_mean: True
 - scaler__with_std: False
 - estimator__alpha: 0.023713737056616554
@@ -54,7 +54,7 @@ O relógio cronológico vai ter como outcome "Age.Chronological.Normalized_by_sp
 
 Os outcomes "Age.Normalized_by_99.9th_percentile" e "Estimate.Lifespan.99.9th_percentile" apesar de serem preditos no paper, ficam de fora.
 
-Nos 36 pares em que o treino do LOIO é igual ao do LODO, é usado o mesmo modelo
+Nos 37 pares em que o treino do LOIO é igual ao do LODO, é usado o mesmo modelo
 
 
 ## Esquema de validação
@@ -75,7 +75,7 @@ Para o relógio cronológico, como o objetivo é prever a idade real do rato, in
 
 ## Treino do Relógio de Mortalidade
 
-Como existem 52 controlos nos datasets sem Expected_Hazard.log10, torna-se impossível usar estes samples no treino, no entanto como no dataset GSE149029 nenhum dos (5) controlos tem Expected_Hazard.log10, a sua exclusão impediria o teste das 3 famílias desse dataset. Sendo assim, no relógio de mortalidade, durante o treino são excluídos os 52 controlos sem Expected_Hazard, embora estes sejam mantidos para o teste.
+Como existem 52 controlos nos datasets sem Expected_Hazard.log10, torna-se impossível usar estes samples no treino, no entanto como no dataset GSE149029 nenhum dos (5) controlos tem Expected_Hazard.log10, a sua exclusão impediria o teste das 3 famílias desse dataset. Sendo assim, no relógio de mortalidade, durante o treino são excluídos os 52 controlos e os 14 samples com intervenções do GSE149029 sem Expected_Hazard, embora sejam mantidos para o teste. Saiem também os 3 samples do GSE124772 cujo tecido é o fígado, porque não existem controlos com esse tecido nesse dataset. Com o GSE219203 também de fora, o treino de mortalidade fica com 4458 amostras.
 
 ## Regra de decisão
 - Intervenções com os mesmos componentes principais são agrupadas numa única família, mesmo quando diferem na dose ou duração (por exemplo, 17aE2_16m e 17aE2_20m). As combinações de dois componentes constituem uma única família, mantendo-se cada componente identificado separadamente. A tabela com as intervenções distribuídas em famílias e componentes é `protocol/interventions_families_components.csv`.
@@ -117,7 +117,7 @@ Para CI 90% = [X,Y]:
 - Se X > 0 : O desempenho do relógio de mortalidade é superior ao desempenho do relógio cronológico
 - Se X =< 0 : Não podemos dizer que o desempenho do relógio de mortalidade  é superior ao desempenho do relógio cronológico
 
-- Se Y < 0.17 O desempenho do relógio de mortalidade é inferior ao publicado
+- Se Y < 0.17 A vantagem do relógio de mortalidade em relação ao cronológico é inferior à publicada
   
 
 ## Análises secundárias
