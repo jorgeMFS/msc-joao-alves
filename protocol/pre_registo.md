@@ -73,9 +73,12 @@ Para o relógio cronológico, como o objetivo é prever a idade real do rato, in
 
 (Esta lógica não se aplica para o relógio de mortalidade porque o outcome do cronológico é a idade real que não varia tenha sido o rato submetido ou não a uma intervenção, no entanto os outcomes do relógio de mortalidade podem variar)
 
+Neste relógio, LODO = LOIO, já que para o teste excluem ambos apenas o dataset D.
+
+
 ## Treino do Relógio de Mortalidade
 
-Como existem 52 controlos nos datasets sem Expected_Hazard.log10, torna-se impossível usar estes samples no treino, no entanto como no dataset GSE149029 nenhum dos (5) controlos tem Expected_Hazard.log10, a sua exclusão impediria o teste das 3 famílias desse dataset. Sendo assim, no relógio de mortalidade, durante o treino são excluídos os 52 controlos e os 14 samples com intervenções do GSE149029 sem Expected_Hazard, embora sejam mantidos para o teste. Saiem também os 3 samples do GSE124772 cujo tecido é o fígado, porque não existem controlos com esse tecido nesse dataset. Com o GSE219203 também de fora, o treino de mortalidade fica com 4458 amostras.
+Como existem 52 controlos nos datasets sem Expected_Hazard.log10, torna-se impossível usar estes samples no treino, no entanto como no dataset GSE149029 nenhum dos (5) controlos tem Expected_Hazard.log10, a sua exclusão impediria o teste das 3 famílias desse dataset. Sendo assim, no relógio de mortalidade, durante o treino são excluídos os 52 controlos sem Expected_Hazard e os 14 samples com intervenções do GSE149029 (porque os seus controlos não têm Expected_Hazard), embora sejam mantidos para o teste. Saem também os 3 samples do GSE124772 cujo tecido é o fígado, porque não existem controlos com esse tecido nesse dataset. Com o GSE219203 também de fora, o treino de mortalidade fica com 4458 amostras.
 
 ## Regra de decisão
 - Intervenções com os mesmos componentes principais são agrupadas numa única família, mesmo quando diferem na dose ou duração (por exemplo, 17aE2_16m e 17aE2_20m). As combinações de dois componentes constituem uma única família, mantendo-se cada componente identificado separadamente. A tabela com as intervenções distribuídas em famílias e componentes é `protocol/interventions_families_components.csv`.
@@ -107,7 +110,7 @@ Para CI 90% = [X,Y]:
   
 ## Comparação secundária entre os relógios
 Para testar se o relógio de mortalidade (LOIO) tem melhor desempenho que o relógio cronológico (LODO) a estatística passa a ser:
-Nota: O R do relógio cronológico vem do LODO, já que para este relógio LODO=LOIO, pois foi treinado apenas com controlos, então para o teste excluem ambos apenas o dataset D.
+Nota: O R do relógio cronológico vem do LODO, já que para este relógio LODO=LOIO, pois foi treinado apenas com controlos.
 
 Δr = r_mortality - r_chronological
 
