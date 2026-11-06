@@ -30,8 +30,8 @@ Depois C2 (Buyse-Molenberghs) e B1 (desenho do ITP), que chegam para escrever o 
   metilómico do relógio de mortalidade.
 - **A4. Lu, Quach, Wang, et al. (2019),** "DNA methylation GrimAge strongly predicts lifespan and
   healthspan", *Aging* 11(2):303-327. DOI: 10.18632/aging.101684.
-  Vai mais longe: treina diretamente contra tempo até à morte. Ver como constroem os rótulos, porque
-  o `src/clocks/loio.py` tem de reconstruir rótulos equivalentes **dentro de cada fold**.
+  Vai mais longe: treina diretamente contra tempo até à morte. Ver como constroem os rótulos, como
+  referência para compreender relógios treinados diretamente contra desfechos de saúde.
 - **A4b. Mavrommatis, Belsky, Ying, Moqri, Campbell, Richmond, Gladyshev, Chandra, McCartney,
   Marioni (2025),** "An unbiased comparison of 14 epigenetic clocks in relation to 174 incident
   disease outcomes", *Nature Communications* **16**:11164.
