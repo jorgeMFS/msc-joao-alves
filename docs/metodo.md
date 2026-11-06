@@ -29,7 +29,7 @@ como limitação descoberta no fim.
 
 ## 2b. Os dois relógios, e o atalho
 
-Os dois relógios saem da **mesma tabela de fígados**. A única diferença é a última coluna.
+Os dois relógios saem dos **mesmos datasets**. A única diferença é a última coluna.
 
 | | Última coluna | O que prevê |
 |---|---|---|
@@ -43,7 +43,7 @@ controlos, todos os fígados de rapamicina levam o mesmo carimbo. Os controlos l
 Fizeram o segundo relógio porque o desvio do cronológico correlacionava fracamente com o efeito dos
 fármacos no tempo de vida. Meter a sobrevivência no rótulo tornou o modelo mais forte.
 
-**E aqui está o problema.** O rótulo veio das curvas de sobrevivência dos fármacos do ITP. Depois
+**E aqui está o problema.** O rótulo veio das curvas de sobrevivência dos fármacos. Depois
 diz-se que o relógio prediz quais os fármacos que prolongam a vida. *Quais fármacos?* Os mesmos
 cujas curvas estão dentro dos rótulos.
 
@@ -62,29 +62,27 @@ para um composto novo.
 ## 3. O teste central: LOIO
 
 ```
-para cada intervenção I:
-    treino  = todas as amostras EXCETO as de I
-    teste   = as amostras de I
-    1. reconstruir os rótulos de mortalidade usando SÓ as curvas de sobrevivência do treino
-    2. afinar hiperparâmetros DENTRO do treino
-    3. treinar o relógio cronológico e o relógio de mortalidade
-    4. prever em I, e registar o efeito de I em cada relógio
-comparar, emparelhado, os dois relógios ao longo das intervenções
+para cada combinação de dataset D e família de intervenção F:
+    teste = todas as amostras do dataset D
+    treino = todas as amostras EXCETO:
+        - as do dataset D
+        - as da família F
+        - as de famílias que partilhem componentes com F
+    1. afinar hiperparâmetros DENTRO do treino
+    2. treinar o relógio cronológico e o relógio de mortalidade
+    3. prever no dataset D e registar os efeitos dos relógios
+comparar LODO e LOIO para o relógio de mortalidade
 ```
 
 Dois pontos onde é fácil enganar-se, e que são o cerne da tese:
 
-**(a) A intervenção inteira sai.** Não amostras da intervenção: a intervenção toda. É o
-`GroupKFold` com `intervention` como grupo (`src/clocks/loio.py`).
+O LOIO exclui do treino o dataset em avaliação, a família de intervenção em avaliação e outras famílias que partilhem componentes com ela. Os folds são definidos por combinações de dataset e família (src/clocks/loio.py).
 
-**(b) Os rótulos são reconstruídos dentro do fold.** Se se usarem os rótulos de mortalidade
-publicados com o tAge, a curva de sobrevivência da intervenção retida já entrou na construção
-desses rótulos, e a fuga que a tese denuncia continua lá, só que escondida. É por isto que
-`build_mortality_labels` existe como função separada e ainda por implementar.
+Os rótulos de mortalidade utilizados são os Expected_Hazard.log10 disponibilizados com os dados tAge. Não são reconstruídos dentro de cada fold. As amostras sem este valor são excluídas do treino do relógio de mortalidade, mas permanecem disponíveis para previsão.
 
 ### O resultado, em concreto
 
-**Um gráfico de dispersão com ~20 pontos, um por fármaco.** Cada ponto tem duas coordenadas:
+**Um gráfico de dispersão com 56 famílias de intervenções.** Cada ponto tem duas coordenadas:
 
 | Eixo | De onde vem | Exemplo |
 |---|---|---|
@@ -98,19 +96,21 @@ A tese prevê que a vantagem do relógio de mortalidade desapareça.
 
 ## 4. O que se compara
 
-Resultado primário: a **diferença emparelhada** entre o relógio de mortalidade e o cronológico, na
-associação ao nível da intervenção (efeito no relógio vs efeito no tempo de vida), com folds idênticos.
+Resultado primário: a **diferença emparelhada** entre a correlação do relógio de mortalidade com o efeito no tempo de vida em LODO e em LOIO:
+
+Δr = r_LODO - r_LOIO
+
+As correlações são calculadas ao nível das famílias de intervenção. A incerteza é estimada através de bootstrap emparelhado ao nível das famílias, com 10000 reamostragens e intervalo de confiança de 90%.
+
+A hipótese primária é que o desempenho do relógio de mortalidade é superior em LODO relativamente a LOIO. Se o limite inferior do IC de 90% de \(\Delta r\) for superior a zero, existe evidência de que LODO apresenta uma correlação superior. Caso contrário, não existe evidência suficiente para concluir que LODO é superior.
 
 Emparelhada porque as duas quantidades são medidas nas mesmas intervenções, e a variação entre
 intervenções é muito maior que a diferença entre relógios. Comparar médias não emparelhadas
 desperdiça a maior parte do sinal.
 
-> **Atenção ao tipo de hipótese.** A hipótese primária é de **equivalência com margem
-> pré-registada**: que o relógio de mortalidade **não confere** capacidade de generalização
-> adicional sobre o cronológico. Não é um teste de diferença. A margem sai da análise de potência da
-> semana 1 (`protocol/potencia.md`) e fixa-se **antes** de ver os dados. Um teste de diferença que
-> "não rejeita" não é o mesmo que demonstrar equivalência, e a distinção é o que torna um resultado
-> negativo publicável.
+> **Atenção ao tipo de hipótese.** A hipótese primária é de **diferença**:
+> que o relógio de mortalidade em LODO **confere** capacidade de generalização
+> adicional sobre o relógio de mortalidade em LOIO. Não é um teste de equivalência.
 
 ### Os esquemas de validação, e o que falta
 
@@ -120,7 +120,7 @@ desperdiça a maior parte do sinal.
 | LOTO | um tecido | ✓ feito |
 | LODO | um conjunto de dados | ✓ feito |
 | LOSO | uma espécie | ✓ feito |
-| **LOIO** | **uma intervenção inteira** | **✗ nunca feito. É esta tese** |
+| **LOIO** | **uma intervenção inteira e um dataset D** | **✗ nunca feito. É esta tese** |
 
 Todos os quatro já corridos **seguram amostras**. Nenhum segura **tratamentos**.
 

@@ -1,32 +1,24 @@
-## #1 Load Packages
+## #1 Set Seed
 
 ```{r}
 set.seed(123)
 ```
+
+## #2 Load Packages
 
 ```{r}
 library(MASS)
 library(here)
 ```
 
-## #2 Create Table
+## #3 Choose Scenarios
 
 ```{r}
-potencia <- data.frame(Intervention = character(20),
-                       Lifespan_Effect = numeric(20),
-                       Chronological_Effect = numeric (20),
-                       Mortality_Effect = numeric (20))
+nint_values = c(20, 41, 56)
+names(nint_values) = c("ITP Only", "Pessimistic Scenario", "Real")
 ```
 
-## #3 Create Intervention Column
-
-```{r}
-for (row in 1:20) {
-  potencia$Intervention[row] = paste0("Drug_", row)
-}
-```
-
-## #4 Create Simulated Effect Data
+## #4 Simulated Effect Data Function
 
 ```{r}
 simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 0.3) {
@@ -42,15 +34,15 @@ simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 0.3) {
   )
   
   effects <- MASS::mvrnorm(
-    n = 20,
+    n = nint,
     mu = c(0, 0, 0),
     Sigma = cor_matrix
   )
   
   #Add Noise to Data
-  noise1 = rnorm(20, mean = noise_mean, sd = noise_sd)
-  noise2 = rnorm(20, mean = noise_mean, sd = noise_sd)
-  noise3 = rnorm(20, mean = noise_mean, sd = noise_sd)
+  noise1 = rnorm(nint, mean = noise_mean, sd = noise_sd)
+  noise2 = rnorm(nint, mean = noise_mean, sd = noise_sd)
+  noise3 = rnorm(nint, mean = noise_mean, sd = noise_sd)
   
   effects[,1] = effects[,1] + noise1
   effects[,2] = effects[,2] + noise2
@@ -60,7 +52,7 @@ simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 0.3) {
 }
 ```
 
-## #5 Calculate Correlations
+## #5 Correlation Function
 
 ```{r}
 corr <- function(df, met="pearson") {
@@ -76,29 +68,41 @@ corr <- function(df, met="pearson") {
 
 ## #6 Simulate 1000 Times
 
-### #6.1 Mean by target_corr
-
 ```{r}
 target_corr_values <- c(0, 0.3, 0.6, 0.9)
 
-results <- data.frame(
-  target_corr = target_corr_values,
-  Mean_DeltaR = numeric(4),
-  Percentile_Range = numeric(4)
-)
+results <- data.frame()
 
-for (i in seq_along(target_corr_values)) {
-  delta_corr_values <- replicate(1000, {
-    effects <- simulated_data(target_corr_values[i])
-    df <- potencia
-    df[, 2:4] <- effects
-    corr(df)
-  })
+for (scenario in names(nint_values)) {
   
-  results$Mean_DeltaR[i] <- mean(delta_corr_values)
-  results$Percentile_Range[i] <-
-    quantile(delta_corr_values, 0.975) -
-    quantile(delta_corr_values, 0.025)
+  nint <- nint_values[scenario]
+  
+  potencia <- data.frame(
+    Intervention = paste0("Drug_", 1:nint),
+    Lifespan_Effect = numeric(nint),
+    Chronological_Effect = numeric(nint),
+    Mortality_Effect = numeric(nint)
+  )
+  
+  for (target in target_corr_values) {
+    
+    delta_corr_values <- replicate(1000, {
+      effects <- simulated_data(target)
+      df <- potencia
+      df[, 2:4] <- effects
+      corr(df)
+    })
+    
+    results <- rbind(results, data.frame(
+      Scenario = scenario,
+      nint = nint,
+      target_corr = target,
+      Mean_DeltaR = mean(delta_corr_values),
+      Percentile_Range =
+        quantile(delta_corr_values, 0.975) -
+        quantile(delta_corr_values, 0.025)
+    ))
+  }
 }
 
 results

@@ -43,7 +43,6 @@ Dão uma tabela com as variáveis escolhidas e coeficientes, em que valores pró
 
 No fundo, o Kaplan-Meier dá informação em cada grupo (Sex_Intervention) sobre a probabilidade de um ratinho desse grupo sobreviver além do tempo t., enquanto Cox dá informação sobre se as variáveis estão associadas ou não ao hazard.
 
-Ou seja, enquanto o 
 
 ## 2. Escrito
 

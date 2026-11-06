@@ -1,0 +1,121 @@
+## #1 Load Packages
+
+```{r}
+library(here)
+```
+
+## #2 Set seed and Import Data
+
+```{r}
+set.seed(123)
+```
+
+```{r}
+data <- read.csv(here("results","drug_effects.csv"))
+R <- data$Correlation[1]
+```
+
+## #3 Choose Scenarios
+
+```{r}
+nint_values = c(20, 41, 56)
+names(nint_values) = c("ITP Only", "Pessimistic Scenario", "Real")
+```
+
+## #4 Simulated Effect Data Function
+
+```{r}
+simulated_data <- function(target_corr=0, noise_mean = 0, noise_sd = 0.3, deltaR = R) {
+
+  cor_matrix <- matrix(
+    c(
+      1,   target_corr, target_corr,
+      target_corr, 1,   deltaR,
+      target_corr, deltaR, 1
+    ),
+    nrow = 3,
+    byrow = TRUE
+  )
+  
+  R <- chol(cor_matrix)
+  Z <- matrix(rnorm(nint * 3), nrow = nint, ncol = 3)
+  
+  effects <- Z %*% R
+  
+  #Add Noise to Data
+  noise1 = rnorm(nint, mean = noise_mean, sd = noise_sd)
+  noise2 = rnorm(nint, mean = noise_mean, sd = noise_sd)
+  noise3 = rnorm(nint, mean = noise_mean, sd = noise_sd)
+  
+  effects[,1] = effects[,1] + noise1
+  effects[,2] = effects[,2] + noise2
+  effects[,3] = effects[,3] + noise3
+  
+  return(effects)
+}
+```
+
+## #5 Correlation Function
+
+```{r}
+corr <- function(df, met="pearson") {
+  
+  corr_c = cor(df$Lifespan_Effect, df$Chronological_Effect, method = met)
+  corr_m = cor(df$Lifespan_Effect, df$Mortality_Effect, method = met)
+  
+  delta_corr = corr_m - corr_c
+  
+  return (delta_corr)
+}
+```
+
+## #6 Simulate 10000 Times
+
+```{r}
+target_corr_values <- c(0, 0.3, 0.6)
+
+results <- data.frame()
+
+for (scenario in names(nint_values)) {
+  
+  nint <- nint_values[scenario]
+  
+  potencia <- data.frame(
+    Intervention = paste0("Drug_", 1:nint),
+    Lifespan_Effect = numeric(nint),
+    Chronological_Effect = numeric(nint),
+    Mortality_Effect = numeric(nint)
+  )
+  
+  for (target in target_corr_values) {
+    
+    delta_corr_values <- replicate(10000, {
+      effects <- simulated_data(target)
+      df <- potencia
+      df[, 2:4] <- effects
+      corr(df)
+    })
+    
+    results <- rbind(results, data.frame(
+      Scenario = scenario,
+      nint = nint,
+      target_corr = target,
+      Mean_DeltaR = mean(delta_corr_values),
+      Percentile_RangeCI95 =
+        quantile(delta_corr_values, 0.975) -
+        quantile(delta_corr_values, 0.025),
+      Percentile_RangeCI90 =
+        quantile(delta_corr_values, 0.95) -
+        quantile(delta_corr_values, 0.05)
+    ))
+  }
+}
+
+results
+```
+
+## #7 Export File
+
+```{r}
+write.csv(results, here("results","potencia_results_corr_modelos.csv"), row.names = FALSE)
+```
