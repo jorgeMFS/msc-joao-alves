@@ -1,23 +1,5 @@
 from sklearn.linear_model import ElasticNet
 
-def transcriptomic_clock_mortality(sample_table, folds, exprs, alpha, l1):
-
-    mask = exprs.isna().sum(axis=1) == 0
-    exprs_complete = exprs[mask]
-
-    for dataset, fold in folds.items():
-        train_idx = fold[0]
-        test_idx = fold[1]
-
-        X_train = exprs[sample_table["Sample"].loc[train_idx]].T
-        X_test = exprs[sample_table["Sample"].loc[test_idx]].T
-
-        y_train = sample_table[["Age.days", "Age.Chronological.Normalized_by_species_max_lifespan"]].loc[train_idx]
-        y_test = sample_table[["Age.days", "Age.Chronological.Normalized_by_species_max_lifespan"]].loc[test_idx]
-
-        model = ElasticNet(alpha = alpha, l1_ratio = l1)
-        model.fit(X_train, y_train)
-
 def transcriptomic_clock_mortality(sample_table, folds, exprs):
 
     results = {}
