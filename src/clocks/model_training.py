@@ -1,6 +1,10 @@
 from sklearn.linear_model import ElasticNet
+from sklearn.impute import SimpleImputer
+
 
 def transcriptomic_clock_mortality(sample_table, folds, exprs):
+
+    imputer = SimpleImputer(strategy="median")
 
     results = {}
     models = {}
@@ -17,6 +21,23 @@ def transcriptomic_clock_mortality(sample_table, folds, exprs):
 
         X_train = exprs[sample_table["Sample"].loc[train_idx]].T
         X_test = exprs[sample_table["Sample"].loc[test_idx]].T
+
+        mask = X_train.notna().mean(axis=0) > 0.2
+
+        X_train = X_train.loc[:, mask]
+        X_test = X_test.loc[:, mask]
+
+        X_train = pd.DataFrame(
+            imputer.fit_transform(X_train),
+            index=X_train.index,
+            columns=X_train.columns
+            )
+
+        X_test = pd.DataFrame(
+            imputer.transform(X_test),
+            index=X_test.index,
+            columns=X_test.columns
+            )
 
         y_train = sample_table["Age.days"].loc[train_idx]
         y_test = sample_table["Age.days"].loc[test_idx]
@@ -42,6 +63,6 @@ def transcriptomic_clock_mortality(sample_table, folds, exprs):
 
         results[dataset] = corr
 
-    mean_R = np.mean(list(results.items))
+    mean_R = np.mean(list(results.values()))
 
     return results, models, mean_R
