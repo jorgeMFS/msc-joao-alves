@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-def clock_mortality_hyperparameters(sample_table, folds, exprs):
+def clock_mortality_hyperparameters(sample_table, exprs, folds, train_samples, train_exprs):
 
     path = Path("C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/results/")
 
@@ -29,9 +29,9 @@ def clock_mortality_hyperparameters(sample_table, folds, exprs):
         train_idx = fold[0]
         test_idx = fold[1]
 
-        groups_train = sample_table["Source"].iloc[train_idx]
+        groups_train = train_samples["Source"].iloc[train_idx]
 
-        X_train = exprs[sample_table["Sample"].iloc[train_idx]].T
+        X_train = train_exprs[train_samples["Sample"].iloc[train_idx]].T
         X_test = exprs[sample_table["Sample"].iloc[test_idx]].T
 
         #Remove genes detected in less than 20% of the samples
@@ -40,16 +40,7 @@ def clock_mortality_hyperparameters(sample_table, folds, exprs):
         X_train = X_train.loc[:, mask]
         X_test = X_test.loc[:, mask]
 
-        keep = ~sample_table["Expected_Hazard.log10"].isna()
-        keep = (
-            keep &
-            ~sample_table["Source"].isin(["GSE219203", "GSE149029"]) &
-            ~((sample_table["Source"] == "GSE124772") & (sample_table["Tissue"] == "Liver"))
-        )
-        sample_table = sample_table.loc[keep].reset_index(drop=True)
-        exprs = exprs.iloc[:, keep.to_numpy()]
-
-        y_train = sample_table["Expected_Hazard.log10"].iloc[train_idx]
+        y_train = train_samples["Expected_Hazard.log10"].iloc[train_idx]
 
         search = GridSearchCV(
             pipeline,
