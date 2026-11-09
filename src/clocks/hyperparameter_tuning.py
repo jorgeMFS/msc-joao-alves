@@ -3,9 +3,9 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import GridSearchCV, GroupKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+from pathlib import Path
 import pandas as pd
 import numpy as np
-from pathlib import Path
 
 def clock_mortality_hyperparameters(sample_table, folds, exprs):
 
@@ -40,6 +40,15 @@ def clock_mortality_hyperparameters(sample_table, folds, exprs):
         X_train = X_train.loc[:, mask]
         X_test = X_test.loc[:, mask]
 
+        keep = ~sample_table["Expected_Hazard.log10"].isna()
+        keep = (
+            keep &
+            ~sample_table["Source"].isin(["GSE219203", "GSE149029"]) &
+            ~((sample_table["Source"] == "GSE124772") & (sample_table["Tissue"] == "Liver"))
+        )
+        sample_table = sample_table.loc[keep].reset_index(drop=True)
+        exprs = exprs.iloc[:, keep.to_numpy()]
+
         y_train = sample_table["Expected_Hazard.log10"].iloc[train_idx]
 
         search = GridSearchCV(
@@ -60,6 +69,6 @@ def clock_mortality_hyperparameters(sample_table, folds, exprs):
 
         df=pd.concat([df, data], ignore_index=True)
 
-    df.to_csv(path/"best_hyperparameters_mortality.csv", index=False, encoding = "utf-8")
+    df.to_csv(path/"hyperparameters_mortality.csv", index=False, encoding = "utf-8")
 
     return df
