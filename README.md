@@ -8,14 +8,15 @@ Orientadores: Jorge Miguel Silva (IEETA) e Gabriela Moura (DCM / iBiMED).
 intervenções geroprotetoras? Isto é: quando um fármaco **novo, nunca visto pelo modelo**, faz o
 relógio descer, isso prediz que o fármaco prolonga o tempo de vida?
 
-**Teste central.** *Leave one intervention out* (LOIO). Retirar um fármaco inteiro do treino,
-retreinar os dois relógios (cronológico e de mortalidade) nos restantes, e medir se o relógio de
-mortalidade mantém alguma vantagem quando vê o fármaco pela primeira vez.
+**Teste central.** Comparação entre Leave-One-Dataset-Out (LODO) e Leave-One-Intervention-Out (LOIO).
+O LODO exclui do treino todas as amostras do dataset em avaliação. O LOIO exclui também as famílias
+de intervenção que partilham componentes com a família em avaliação. O objetivo é avaliar se a
+exclusão adicional destas intervenções altera a associação entre as previsões do relógio de
+mortalidade e os efeitos observados no tempo de vida.
 
 **A previsão, pré-registada.** Os valores publicados são r² ≈ 0,13 (cronológico) e r² ≈ 0,28
 (mortalidade). A tese prevê que o segundo **colapse para ≈ 0,13** sob LOIO, porque a vantagem viria
-da construção do rótulo, não do mecanismo biológico. A hipótese primária é de **equivalência com
-margem pré-registada**, não um teste de diferença.
+da construção do rótulo, não do mecanismo biológico. A hipótese primária é de **diferença**, não um teste de equivalência.
 
 ---
 
@@ -42,7 +43,7 @@ Só depois se abre código.
 | `docs/figuras/` | As quatro figuras da proposta (desenho, CAST, esquemas de validação, cronograma). |
 | `protocol/` | Pré-registo, portão da semana 1, análise de potência. **Fecha-se antes de analisar.** |
 | `relatorios_semanais/` | Um ficheiro por semana. Copiar `TEMPLATE.md` todas as sextas. |
-| `src/clocks/` | Código Python: carregar dados, construir rótulos dentro do fold, LOIO. |
+| `src/clocks/` | Código Python: carregar dados, preparar os relógios e implementar os esquemas LODO e LOIO. |
 | `analysis/R/` | Substituição ao nível do ensaio (pacote `Surrogate`). |
 | `experiments/` | Uma pasta por experiência, com pergunta e resposta. Ver `experiments/README.md`. |
 | `notebooks/` | Exploração descartável. O que valer a pena passa a `experiments/`. |
@@ -116,16 +117,17 @@ formato dos commits e o que fazer quando o git corre mal.
 
 ## Duas regras que não se negoceiam
 
-1. **O pré-registo fecha antes de qualquer análise.** Hipótese, margem, esquema de folds e regra de
-   decisão escritos antes de ver os dados. Se o resultado surpreender, o mérito é ter-se comprometido
+1. **O pré-registo fecha antes de qualquer análise.** Hipótese, esquema de folds e regra de decisão
+   escritos antes de ver os dados. Se o resultado surpreender, o mérito é ter-se comprometido
    antes.
-2. **Os rótulos do relógio de mortalidade são construídos dentro de cada fold.** Usar os rótulos
-   publicados do tAge reintroduz exatamente a fuga que a tese denuncia, só que escondida.
-   Ver `src/clocks/loio.py`.
+2. Os rótulos do relógio de mortalidade são os disponibilizados com os dados tAge.
+   Utiliza-se Expected_Hazard.log10, sem reconstruir os rótulos dentro de cada fold.
+   As amostras sem este valor são excluídas do treino do relógio de mortalidade,
+   mas permanecem disponíveis para previsão e avaliação.
 
 ## Ambiente
 
-Python 3.11 · R 4.x
+Python 3.11 · R 4.6.0
 
 ```bash
 python -m venv .venv && source .venv/bin/activate

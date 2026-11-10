@@ -29,16 +29,15 @@ reunião e não for claro, entra aqui no mesmo dia.
 
 - **ITP (Interventions Testing Program).** Programa do NIA que testa fármacos em ratinhos
   geneticamente heterogéneos, em três sítios em paralelo, com resultados reportados por sexo.
-- **Intervenção.** A unidade de análise desta tese. **A sua definição fixa o N do LOIO** e é decidida
-  na semana 1: composto? composto × dose? composto × idade de início? Uma vez no pré-registo, não muda.
+- **Família de intervenção.** Grupo de intervenções relacionadas por composto ou componentes partilhados.
+  É uma unidade de análise na comparação LODO vs LOIO e no bootstrap emparelhado.
 - **Efeito no tempo de vida.** Quanto uma intervenção altera a sobrevivência face ao controlo.
   Reportar mediana **e** razão de risco, por sexo.
 - **Efeito no relógio.** Quanto uma intervenção baixa a aceleração de idade prevista.
 
 ## Validação
 
-- **LOIO (leave one intervention out).** Retirar uma intervenção **inteira** do treino, retreinar,
-  e avaliar nessa intervenção nunca vista. É o teste central da tese.
+- **LOIO (leave one intervention out).** Esquema de validação em que cada fold corresponde a uma combinação de dataset e família de intervenção. O teste inclui todas as amostras do dataset; o treino exclui esse dataset, a família-alvo e famílias que partilham componentes com ela.
 - **LOFO / LOTO / LODO / LOSO.** Os quatro esquemas de validação já corridos pelos autores: deixar
   de fora um fold, um tecido, um conjunto de dados, uma espécie. **Todos seguram amostras.** Nenhum
   segura tratamentos, daí o LOIO.
@@ -47,13 +46,11 @@ reunião e não for claro, entra aqui no mesmo dia.
 - **Fuga (leakage).** Informação do conjunto de teste que entra no treino. Aqui tem duas formas:
   (i) a mesma intervenção em treino e teste; (ii) usar rótulos de mortalidade construídos com a curva
   de sobrevivência da intervenção retida. O `loio.py` tem de eliminar as duas.
-- **Rótulo construído dentro do fold.** O rótulo do relógio de mortalidade é reconstruído usando
-  **só** as intervenções de treino. Usar os rótulos publicados do tAge reintroduz a fuga.
-- **Teste de equivalência.** Demonstrar que duas coisas **não diferem** para além de uma margem Δ
-  fixada à partida. Distinto de "não rejeitar diferença zero", que não demonstra nada. A hipótese
-  primária desta tese é de equivalência.
-- **Margem de equivalência (Δ).** O quanto se aceita como "sem diferença prática". Sai da análise de
-  potência da semana 1 e fixa-se **antes** de ver os dados.
+- **Rótulo de mortalidade.** O relógio de mortalidade é treinado para prever o Expected_Hazard.log10,
+ fornecido nos dados do tAge. Estes rótulos não são reconstruídos dentro de cada fold.
+ As amostras sem este valor são excluídas do treino do relógio de mortalidade, mas podem continuar a ser utilizadas para previsão e avaliação.
+- **Teste de diferença.** Demonstrar que os relógios **diferem**.
+  fixada à partida. Compara a correlação entre o efeito previsto pelo relógio de mortalidade e o efeito na longevidade nos dois esquemas de validação.
 - **Diferença emparelhada.** O resultado primário: para cada intervenção, a diferença entre o
   desempenho do relógio de mortalidade e o do cronológico, com folds idênticos.
 

@@ -30,3 +30,7 @@ table_Zenodo tem informação sobre amostras do ITP das cohorts que vão ser uti
 entre outras informações...
 
 table_zenodo_mpd_id é uma tabela com a correspondência entre a nomenclatura dos fármacos utilizados pelo ITP e pelo Zenodo
+
+model_results_chronoage_vs_mortality.csv contém as previsões dos modelos
+
+drug_effects.csv contém os valores dos efeitos dos fármacos, por modelo. Isto foi calculado da seguinte forma: média da previsão (farmaco) - média da previsão (controlos 660 dias)
