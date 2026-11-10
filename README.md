@@ -14,7 +14,7 @@ de intervenção que partilham componentes com a família em avaliação. O obje
 exclusão adicional destas intervenções altera a associação entre as previsões do relógio de
 mortalidade e os efeitos observados no tempo de vida.
 
-**A previsão, pré-registada.** Os valores publicados são r² ≈ 0,13 (cronológico) e r² ≈ 0,28
+**Resultado Esperado.** Os valores publicados são r² ≈ 0,13 (cronológico) e r² ≈ 0,28
 (mortalidade). A tese prevê que o segundo **colapse para ≈ 0,13** sob LOIO, porque a vantagem viria
 da construção do rótulo, não do mecanismo biológico. A hipótese primária é de **diferença**, não um teste de equivalência.
 
