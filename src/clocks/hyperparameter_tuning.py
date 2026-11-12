@@ -9,7 +9,7 @@ import numpy as np
 
 def clock_mortality_hyperparameters(sample_table, exprs, folds, train_samples, train_exprs):
 
-    path = Path("C:/Users/João Alves/Desktop/Thesis/msc-joao-alves/results/")
+    path = Path(__file__).resolve().parents[2]
 
     pipeline = Pipeline([
         ("imputer", SimpleImputer(strategy="median")),
@@ -60,6 +60,6 @@ def clock_mortality_hyperparameters(sample_table, exprs, folds, train_samples, t
 
         df=pd.concat([df, data], ignore_index=True)
 
-    df.to_csv(path/"hyperparameters_mortality.csv", index=False, encoding = "utf-8")
+    df.to_csv(path / "results" / "hyperparameters_mortality.csv", index=False, encoding = "utf-8")
 
     return df
