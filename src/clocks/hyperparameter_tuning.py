@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-def clock_mortality_hyperparameters(sample_table, exprs, folds, train_samples, train_exprs):
+def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds, train_samples, train_exprs):
 
     path = Path(__file__).resolve().parents[2]
 
@@ -47,7 +47,7 @@ def clock_mortality_hyperparameters(sample_table, exprs, folds, train_samples, t
             grid,
             cv=GroupKFold(n_splits=5),
             scoring="r2",
-            n_jobs=-1
+            n_jobs=6
         )
 
         search.fit(X_train, y_train, groups=groups_train)
@@ -60,6 +60,6 @@ def clock_mortality_hyperparameters(sample_table, exprs, folds, train_samples, t
 
         df=pd.concat([df, data], ignore_index=True)
 
-    df.to_csv(path / "results" / "hyperparameters_mortality.csv", index=False, encoding = "utf-8")
+    df.to_csv(path / "results" / "hyperparameters_mortality_LODO.csv", index=False, encoding = "utf-8")
 
     return df
