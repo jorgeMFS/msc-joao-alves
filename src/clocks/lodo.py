@@ -2,9 +2,7 @@
 
 from sklearn.model_selection import LeaveOneGroupOut
 
-def lodo_splits(sample_table, clean_samples, group_col="Source"):
-
-    train_samples = clean_samples(sample_table)
+def lodo_splits(sample_table, train_samples, group_col="Source"):
 
     control_datasets = set(sample_table[sample_table["Family"] == "Control"][group_col])
     treated_datasets = set(sample_table[sample_table["Family"] != "Control"][group_col])
