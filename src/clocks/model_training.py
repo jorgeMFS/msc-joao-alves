@@ -14,8 +14,8 @@ def transcriptomic_clock_mortality_LODO(sample_table, folds, exprs, hyperparamet
         exprs = exprs.drop(columns=["Unnamed: 0"])
 
     predictions = sample_table.copy()
-    predictions["Predicted_Expected_Hazard.log10"] = pd.NA
     predictions["Expected_Hazard_centered"] = predictions["Expected_Hazard.log10"]
+    predictions["Predicted_Expected_Hazard"] = pd.NA
 
     for source, tissue in predictions[["Source", "Tissue"]].drop_duplicates().itertuples(index=False, name=None):
 
@@ -34,7 +34,7 @@ def transcriptomic_clock_mortality_LODO(sample_table, folds, exprs, hyperparamet
         control_median = np.median(
             predictions.loc[control_mask, "Expected_Hazard.log10"]
         )
-
+        
         predictions.loc[group_mask, "Expected_Hazard_centered"] = (
             predictions.loc[group_mask, "Expected_Hazard.log10"] - control_median
         )
@@ -75,7 +75,11 @@ def transcriptomic_clock_mortality_LODO(sample_table, folds, exprs, hyperparamet
         pipeline.fit(X_train, y_train)
         y_pred = pipeline.predict(X_test)
 
-        predictions["Predicted_Expected_Hazard"].loc[test_idx] = y_pred
+        predictions.loc[
+            predictions.index[test_idx],
+            "Predicted_Expected_Hazard"
+        ] = y_pred
+        
 
     predictions.to_csv(path / "results" / "predictions_mortality_LODO.csv", index=False, encoding = "utf-8")
 
