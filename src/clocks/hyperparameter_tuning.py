@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-def clock_mortality_hyperparameters_LODO(sample_table, train_samples, exprs, folds):
+def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds):
 
     path = Path(__file__).resolve().parents[2]
 
@@ -29,9 +29,9 @@ def clock_mortality_hyperparameters_LODO(sample_table, train_samples, exprs, fol
         train_idx = fold[0]
         test_idx = fold[1]
 
-        groups_train = train_samples["Source"].iloc[train_idx]
+        groups_train = sample_table["Source"].iloc[train_idx]
 
-        X_train = exprs[train_samples["Sample"].iloc[train_idx]].T
+        X_train = exprs[sample_table["Sample"].iloc[train_idx]].T
         X_test = exprs[sample_table["Sample"].iloc[test_idx]].T
 
         #Remove genes detected in less than 20% of the samples
@@ -40,7 +40,7 @@ def clock_mortality_hyperparameters_LODO(sample_table, train_samples, exprs, fol
         X_train = X_train.loc[:, mask]
         X_test = X_test.loc[:, mask]
 
-        y_train = train_samples["Expected_Hazard.log10"].iloc[train_idx]
+        y_train = sample_table["Expected_Hazard.log10"].iloc[train_idx]
 
         search = GridSearchCV(
             pipeline,
