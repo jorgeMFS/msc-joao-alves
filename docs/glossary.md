@@ -49,10 +49,9 @@ reunião e não for claro, entra aqui no mesmo dia.
 - **Rótulo de mortalidade.** O relógio de mortalidade é treinado para prever o Expected_Hazard.log10,
  fornecido nos dados do tAge. Estes rótulos não são reconstruídos dentro de cada fold.
  As amostras sem este valor são excluídas do treino do relógio de mortalidade, mas podem continuar a ser utilizadas para previsão e avaliação.
-- **Teste de diferença.** Demonstrar que os relógios **diferem**.
-  fixada à partida. Compara a correlação entre o efeito previsto pelo relógio de mortalidade e o efeito na longevidade nos dois esquemas de validação.
-- **Diferença emparelhada.** O resultado primário: para cada intervenção, a diferença entre o
-  desempenho do relógio de mortalidade e o do cronológico, com folds idênticos.
+- **Teste de diferença.** Demonstrar que o desempenho do relógio de mortalidade em LOIO e LODO **diferem**.
+- **Diferença emparelhada.** O resultado primário: para cada família, a diferença entre o
+  desempenho do relógio de mortalidade em LODO e LOIO, com folds idênticos.
 
 ## Substituição
 
