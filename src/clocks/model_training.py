@@ -6,12 +6,9 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-def transcriptomic_clock_mortality_LODO(sample_table, folds, exprs, hyperparameters):
+def transcriptomic_clock_mortality_LODO(sample_table, exprs, folds, hyperparameters):
 
     path = Path(__file__).resolve().parents[2]
-
-    if "Unnamed: 0" in exprs.columns:
-        exprs = exprs.drop(columns=["Unnamed: 0"])
 
     predictions = sample_table.copy()
     predictions["Expected_Hazard_centered"] = predictions["Expected_Hazard.log10"]
