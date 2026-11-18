@@ -47,7 +47,7 @@ def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds):
             grid,
             cv=GroupKFold(n_splits=5),
             scoring="r2",
-            n_jobs=6
+            n_jobs=-1
         )
 
         search.fit(X_train, y_train, groups=groups_train)
