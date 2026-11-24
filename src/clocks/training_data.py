@@ -9,7 +9,9 @@ def clean_samples(sample_table):
     
     train_samples = sample_table.loc[keep].reset_index(drop=True)
 
-    return train_samples
+    test_samples = sample_table[sample_table["Source"] == "GSE124772" & (sample_table["Tissue"] == "Liver")]
+
+    return train_samples, test_samples
 
 
 def center_data(sample_table, exprs):
