@@ -28,6 +28,11 @@ def center_data(sample_table, exprs):
             (centered_sample_table["Expected_Hazard.log10"].notna())
         )
 
+        control_mask_exprs_exception = (
+            (centered_sample_table["Source"] == source) &
+            (centered_sample_table["Intervention"] == "Control") 
+        )
+
         control_mask_exprs = (
             (centered_sample_table["Source"] == source) &
             (centered_sample_table["Tissue"] == tissue) &
@@ -35,6 +40,7 @@ def center_data(sample_table, exprs):
         )
 
         control_list = centered_sample_table.loc[control_mask_exprs, "Sample"]
+        control_list_exception = centered_sample_table.loc[control_mask_exprs_exception, "Sample"]
 
         group_mask_samples = (
             (centered_sample_table["Source"] == source) &
@@ -43,15 +49,16 @@ def center_data(sample_table, exprs):
 
         group_list = centered_sample_table.loc[group_mask_samples, "Sample"]
 
-        control_median_samples = np.median(
-            centered_sample_table.loc[control_mask_samples, "Expected_Hazard.log10"]
-        )
-        
-        centered_sample_table.loc[group_mask_samples, "Expected_Hazard_centered"] = (
-            centered_sample_table.loc[group_mask_samples, "Expected_Hazard.log10"] - control_median_samples
-        )
-
         if len(control_list) > 0:
+            control_median_samples = np.median(
+                centered_sample_table.loc[control_mask_samples, "Expected_Hazard.log10"]
+            )
+        
+            centered_sample_table.loc[group_mask_samples, "Expected_Hazard_centered"] = (
+                centered_sample_table.loc[group_mask_samples, "Expected_Hazard.log10"] - control_median_samples
+            )
+
+        if control_mask_samples.any():
             control_median_exprs = np.median(
                 centered_exprs.loc[:, control_list], axis = 1
             )
@@ -59,6 +66,16 @@ def center_data(sample_table, exprs):
             centered_exprs.loc[:,group_list] = (
                 centered_exprs.loc[:, group_list] - control_median_exprs
             )
+
+        else:
+            control_median_exprs = np.median(
+                centered_exprs.loc[:, control_list_exception], axis = 1
+            )
+
+            centered_exprs.loc[:,group_list] = (
+                centered_exprs.loc[:, group_list] - control_median_exprs
+            )
+
         
 
     return centered_sample_table, centered_exprs
