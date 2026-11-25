@@ -97,11 +97,11 @@ def transcriptomic_clock_mortality_LODO(sample_table, exprs, folds, hyperparamet
         ] = y_pred
         
 
-    predictions.to_csv(path / "results" / "predictions_mortality_LODO.csv", index=False, encoding = "utf-8")
+    predictions.to_csv(output_path / "predictions_mortality_LODO.csv", index=False, encoding = "utf-8")
 
     pd.DataFrame(
         non_convergence.items(), columns=["Dataset", "Non_converged"]).to_csv(
-        path / "results" / "non_convergence_LODO.csv",
+        output_path / "non_convergence_LODO.csv",
         index=False
     )
 
