@@ -1,21 +1,5 @@
 import numpy as np
 
-def clean_samples(sample_table):
-    keep = ~sample_table["Expected_Hazard.log10"].isna()
-    
-    keep = (
-        keep &
-        ~sample_table["Source"].isin(["GSE219203", "GSE149029"]) &
-        ~((sample_table["Source"] == "GSE124772") & (sample_table["Tissue"] == "Liver"))
-    )
-    
-    train_samples = sample_table.loc[keep].reset_index(drop=True)
-
-    test_samples = sample_table[~((sample_table["Source"] == "GSE124772") & (sample_table["Tissue"] == "Liver"))]
-
-    return train_samples, test_samples
-
-
 def center_data(sample_table, exprs):
 
     centered_sample_table = sample_table.copy()
@@ -67,7 +51,7 @@ def center_data(sample_table, exprs):
                 centered_exprs.loc[:, group_list] - control_median_exprs
             )
 
-        else:
+        elif len(control_list_exception) > 0:
             control_median_exprs = np.median(
                 centered_exprs.loc[:, control_list_exception], axis = 1
             )
@@ -77,3 +61,20 @@ def center_data(sample_table, exprs):
             )
 
     return centered_sample_table, centered_exprs
+
+
+
+def clean_samples(sample_table):
+    keep = ~sample_table["Expected_Hazard.log10"].isna()
+    
+    keep = (
+        keep &
+        ~sample_table["Source"].isin(["GSE219203", "GSE149029"]) &
+        ~((sample_table["Source"] == "GSE124772") & (sample_table["Tissue"] == "Liver"))
+    )
+    
+    train_samples = sample_table.loc[keep].reset_index(drop=True)
+
+    test_samples = sample_table[~((sample_table["Source"] == "GSE124772") & (sample_table["Tissue"] == "Liver"))]
+
+    return train_samples, test_samples
