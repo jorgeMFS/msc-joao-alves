@@ -1,3 +1,5 @@
+import numpy as np
+
 def clean_samples(sample_table):
     keep = ~sample_table["Expected_Hazard.log10"].isna()
     
