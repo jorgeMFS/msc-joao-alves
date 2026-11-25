@@ -40,7 +40,7 @@ def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds):
         X_train = X_train.loc[:, mask]
         X_test = X_test.loc[:, mask]
 
-        y_train = sample_table["Expected_Hazard.log10"].iloc[train_idx]
+        y_train = sample_table["Expected_Hazard_centered"].iloc[train_idx]
 
         search = GridSearchCV(
             pipeline,
