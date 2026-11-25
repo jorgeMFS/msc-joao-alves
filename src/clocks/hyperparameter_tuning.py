@@ -3,6 +3,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import GridSearchCV, GroupKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+from sklearn.base import BaseEstimator, TransformerMixin
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -11,7 +12,18 @@ def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds):
 
     path = Path(__file__).resolve().parents[2]
 
+    class GeneFilter(BaseEstimator, TransformerMixin):
+
+        def fit(self, X, y=None):
+            self.mask_ = X.notna().mean(axis=0) >= 0.2
+            return self
+
+        def transform(self, X):
+            return X.loc[:, self.mask_]
+
+
     pipeline = Pipeline([
+        ("gene_filter", GeneFilter()),
         ("imputer", SimpleImputer(strategy="median")),
         ("scaler", StandardScaler(with_mean=True, with_std=False)),
         ("estimator", ElasticNet())
@@ -32,13 +44,6 @@ def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds):
         groups_train = sample_table["Source"].iloc[train_idx]
 
         X_train = exprs[sample_table["Sample"].iloc[train_idx]].T
-        X_test = exprs[sample_table["Sample"].iloc[test_idx]].T
-
-        #Remove genes detected in less than 20% of the samples
-        mask = X_train.notna().mean(axis=0) >= 0.2 
-
-        X_train = X_train.loc[:, mask]
-        X_test = X_test.loc[:, mask]
 
         y_train = sample_table["Expected_Hazard_centered"].iloc[train_idx]
 
