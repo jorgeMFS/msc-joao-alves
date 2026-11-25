@@ -3,14 +3,18 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.exceptions import ConvergenceWarning
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import warnings
 
 
-def transcriptomic_clock_mortality_LODO(sample_table, exprs, folds, hyperparameters):
+def transcriptomic_clock_mortality_LODO(sample_table, exprs, folds, hyperparameters, output_path):
 
-    path = Path(__file__).resolve().parents[2]
+    output_path = Path(output_path)
+
+    non_convergence = {}
 
     predictions = sample_table.copy()
     predictions["Expected_Hazard_centered"] = predictions["Expected_Hazard.log10"]
@@ -75,7 +79,16 @@ def transcriptomic_clock_mortality_LODO(sample_table, exprs, folds, hyperparamet
 
         y_train = predictions["Expected_Hazard_centered"].iloc[train_idx]
 
-        pipeline.fit(X_train, y_train)
+        with warnings.catch_warnings(record=True) as caught_warnings:
+            warnings.simplefilter("always", ConvergenceWarning)
+
+            pipeline.fit(X_train, y_train)
+
+        non_convergence[dataset] = sum(
+            issubclass(w.category, ConvergenceWarning)
+            for w in caught_warnings
+        )
+
         y_pred = pipeline.predict(X_test)
 
         predictions.loc[
@@ -85,5 +98,11 @@ def transcriptomic_clock_mortality_LODO(sample_table, exprs, folds, hyperparamet
         
 
     predictions.to_csv(path / "results" / "predictions_mortality_LODO.csv", index=False, encoding = "utf-8")
+
+    pd.DataFrame(
+        non_convergence.items(), columns=["Dataset", "Non_converged"]).to_csv(
+        path / "results" / "non_convergence_LODO.csv",
+        index=False
+    )
 
     return predictions
