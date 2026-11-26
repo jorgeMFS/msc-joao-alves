@@ -7,6 +7,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import time
 
 def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds, output_path, selected_folds=None):
 
@@ -43,6 +44,8 @@ def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds, output_path
 
     for dataset, fold in folds.items():
 
+        start = time.time()
+
         if selected_folds is not None and dataset not in selected_folds:
             continue
 
@@ -67,6 +70,8 @@ def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds, output_path
 
         search.fit(X_train, y_train, groups=groups_train)
 
+        elapsed_time = time.time() - start
+
         data = pd.DataFrame({
             "Dataset": [dataset],
             "Alpha": [search.best_params_["estimator__alpha"]],
@@ -76,5 +81,7 @@ def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds, output_path
         df = pd.concat([df, data], ignore_index=True)
 
         df.to_csv(output_file, index=False, encoding="utf-8")
+
+        print(f"Fold {dataset}: {elapsed_time:.2f} seconds")
 
     return df
