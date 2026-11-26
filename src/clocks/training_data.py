@@ -31,10 +31,9 @@ def center_data(sample_table, exprs):
         )
 
         group_list = centered_sample_table.loc[group_mask_samples, "Sample"]
-        
 
         if control_mask.any():
-            control_median_samples = np.median(
+            control_median_samples = np.nanmedian(
                 centered_sample_table.loc[control_mask, "Expected_Hazard.log10"]
             )
         
@@ -43,21 +42,21 @@ def center_data(sample_table, exprs):
             )
 
         if len(control_list) > 0:
-            control_median_exprs = np.median(
+            control_median_exprs = np.nanmedian(
                 centered_exprs.loc[:, control_list], axis = 1
             )
 
-            centered_exprs.loc[:,group_list] = (
-                centered_exprs.loc[:, group_list] - control_median_exprs
+            centered_exprs.loc[:, group_list] = (
+                centered_exprs.loc[:, group_list].sub(control_median_exprs, axis=0)
             )
 
         elif len(control_list_exception) > 0:
-            control_median_exprs = np.median(
+            control_median_exprs = np.nanmedian(
                 centered_exprs.loc[:, control_list_exception], axis = 1
             )
 
-            centered_exprs.loc[:,group_list] = (
-                centered_exprs.loc[:, group_list] - control_median_exprs
+            centered_exprs.loc[:, group_list] = (
+                centered_exprs.loc[:, group_list].sub(control_median_exprs, axis=0)
             )
 
     return centered_sample_table, centered_exprs
