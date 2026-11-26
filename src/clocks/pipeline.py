@@ -1,31 +1,38 @@
-from pathlib import Path
+# Imports
 import pandas as pd
-import numpy as np
 
-from src.clocks.training_data import clean_samples, clean_expression
-from src.clocks.lodo import lodo_splits
-#from src.clocks.model_training import transcriptomic_clock_mortality_LODO
-from src.clocks.hyperparameter_tuning import clock_mortality_hyperparameters_LODO
+from clocks.training_data import center_data, clean_samples
+from clocks.lodo import lodo_splits
+from clocks.hyperparameter_tuning import clock_mortality_hyperparameters_LODO
 
 
-path = Path(__file__).resolve().parents[2]
-
-sample_table = pd.read_csv(path / "results" / "table_Zenodo_complete.csv")
-exprs = pd.read_csv(path / "data" / "raw" / "Expression_data_absolute_rodents_Scaled.csv")
-
-train_samples = clean_samples(sample_table)
-exprs = clean_expression(exprs)
-
-folds = lodo_splits(sample_table, train_samples)
-
-df = clock_mortality_hyperparameters_LODO(sample_table, exprs, folds)
-
-import shutil
-
-output_dir = Path("outputs")
-output_dir.mkdir(parents=True, exist_ok=True)
-
-shutil.copy(
-    path / "results" / "hyperparameters_mortality_LODO.csv",
-    output_dir / "hyperparameters_mortality_LODO.csv"
+# Load data
+exprs = pd.read_csv(
+    "/kaggle/input/datasets/joaoalvess/expression/Expression_data_absolute_rodents_Scaled.csv",
+    index_col=0
 )
+
+sample_table = pd.read_csv(
+    "/kaggle/input/datasets/joaoalvess/metadata/table_Zenodo_complete.csv"
+)
+
+
+# Prepare data
+centered_sample_table, centered_exprs = center_data(sample_table, exprs)
+
+train_samples, test_samples = clean_samples(centered_sample_table)
+
+folds = lodo_splits(test_samples, train_samples)
+
+
+# Run pipeline
+sel_folds = ["Current", "GSE101657"]
+
+df = clock_mortality_hyperparameters_LODO(
+    test_samples,
+    centered_exprs,
+    folds,
+    "/kaggle/working/",
+    sel_folds
+)
+
