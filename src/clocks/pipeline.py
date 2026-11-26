@@ -26,10 +26,10 @@ folds = lodo_splits(test_samples, train_samples)
 
 nan_before = exprs.isna().mean().mean() * 100
 nan_after = centered_exprs.isna().mean().mean() * 100
-print(f"Proportion of NAs before centering: {nan_before} \n Proportion of NAs after centering: {nan_after}")
+print(f"Proportion of NAs before centering: {nan_before} \nProportion of NAs after centering: {nan_after}")
 
 # Run pipeline
-sel_folds = ["Current", "GSE101657"]
+sel_folds = ["GSE108379", "GSE101657"]
 
 df = clock_mortality_hyperparameters_LODO(
     test_samples,
