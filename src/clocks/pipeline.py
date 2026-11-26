@@ -24,6 +24,9 @@ train_samples, test_samples = clean_samples(centered_sample_table)
 
 folds = lodo_splits(test_samples, train_samples)
 
+nan_before = exprs.isna().mean().mean() * 100
+nan_after = centered_exprs.isna().mean().mean() * 100
+print(f"Proportion of NAs before centering: {nan_before} \n Proportion of NAs after centering: {nan_after}")
 
 # Run pipeline
 sel_folds = ["Current", "GSE101657"]
