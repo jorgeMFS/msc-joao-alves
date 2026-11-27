@@ -1,0 +1,87 @@
+from sklearn.linear_model import ElasticNet
+from sklearn.impute import SimpleImputer
+from sklearn.model_selection import GridSearchCV, GroupKFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.base import BaseEstimator, TransformerMixin
+import pandas as pd
+import numpy as np
+from pathlib import Path
+import time
+
+def clock_mortality_hyperparameters_LODO(sample_table, exprs, folds, output_path, selected_folds=None):
+
+    output_path = Path(output_path)
+
+    output_file = output_path / "hyperparameters_mortality_LODO.csv"
+
+    if output_file.exists():
+        df = pd.read_csv(output_file)
+    else:
+        df = pd.DataFrame(columns=["Dataset", "Alpha", "L1 Ratio"])
+
+    class GeneFilter(BaseEstimator, TransformerMixin):
+
+        def fit(self, X, y=None):
+            self.mask_ = X.notna().mean(axis=0) >= 0.2
+            return self
+
+        def transform(self, X):
+            return X.loc[:, self.mask_]
+
+
+    pipeline = Pipeline([
+        ("gene_filter", GeneFilter()),
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler", StandardScaler(with_mean=True, with_std=False)),
+        ("estimator", ElasticNet())
+        ])
+
+    grid = {
+        "estimator__alpha": np.logspace(-5, 2, 15),
+        "estimator__l1_ratio": [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1]
+    }
+
+    for dataset, fold in folds.items():
+
+        start = time.time()
+
+        if selected_folds is not None and dataset not in selected_folds:
+            continue
+
+        if dataset in df["Dataset"].values:
+            continue
+
+        train_idx = fold[0]
+
+        groups_train = sample_table["Source"].iloc[train_idx]
+
+        X_train = exprs[sample_table["Sample"].iloc[train_idx]].T
+
+        y_train = sample_table["Expected_Hazard_centered"].iloc[train_idx]
+
+        search = GridSearchCV(
+            pipeline,
+            grid,
+            cv=GroupKFold(n_splits=5),
+            scoring="r2",
+            n_jobs=8
+        )
+
+        search.fit(X_train, y_train, groups=groups_train)
+
+        elapsed_time = time.time() - start
+
+        data = pd.DataFrame({
+            "Dataset": [dataset],
+            "Alpha": [search.best_params_["estimator__alpha"]],
+            "L1 Ratio": [search.best_params_["estimator__l1_ratio"]]
+        })
+
+        df = pd.concat([df, data], ignore_index=True)
+
+        df.to_csv(output_file, index=False, encoding="utf-8")
+
+        print(f"Fold {dataset}: {elapsed_time:.2f} seconds")
+
+    return df

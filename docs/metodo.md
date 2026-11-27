@@ -82,7 +82,7 @@ Os rótulos de mortalidade utilizados são os Expected_Hazard.log10 disponibiliz
 
 ### O resultado, em concreto
 
-**Um gráfico de dispersão com ~20 pontos, um por fármaco.** Cada ponto tem duas coordenadas:
+**Um gráfico de dispersão com 56 famílias de intervenções.** Cada ponto tem duas coordenadas:
 
 | Eixo | De onde vem | Exemplo |
 |---|---|---|
@@ -109,8 +109,8 @@ intervenções é muito maior que a diferença entre relógios. Comparar médias
 desperdiça a maior parte do sinal.
 
 > **Atenção ao tipo de hipótese.** A hipótese primária é de **diferença**:
-> que o relógio de mortalidade **confere** capacidade de generalização
-> adicional sobre o cronológico. Não é um teste de equivalência.
+> que o relógio de mortalidade em LODO **confere** capacidade de generalização
+> adicional sobre o relógio de mortalidade em LOIO. Não é um teste de equivalência.
 
 ### Os esquemas de validação, e o que falta
 
